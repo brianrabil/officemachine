@@ -12,8 +12,7 @@
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "fmt": "oxfmt",
-    "fmt:check": "oxfmt --check",
-    "test": "turbo run test"
+    "fmt:check": "oxfmt --check"
   },
   "devDependencies": {
     "oxfmt": "^0.57.0",

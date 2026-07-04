@@ -1,8 +1,33 @@
-import { HarnessAgent, type HarnessAgentSession } from "@ai-sdk/harness/agent";
-import { runAgentTUI, type AgentTUIAgent } from "@ai-sdk/tui";
-import { agent } from "@workspace/harness/agent";
+import { runAgentTUI } from "@ai-sdk/tui";
+import { HarnessAgent, HarnessAgentSession } from "@ai-sdk/harness/agent";
+import { type AgentTUIAgent } from "@ai-sdk/tui";
+import { createJustBashSandbox } from "@ai-sdk/sandbox-just-bash";
+import { createPi } from "@ai-sdk/harness-pi";
+import { config } from "./config";
+import { getBuiltinModel } from "@earendil-works/pi-ai/providers/all";
 
-function createTUIAgent({
+const model = getBuiltinModel("opencode-go", "deepseek-v4-flash");
+
+export const agent = new HarnessAgent({
+  id: "agent-1",
+  harness: createPi({
+    model: `${model.provider}/${model.name}`,
+    auth: {
+      customEnv: {
+        OPENCODE_API_KEY: config.OPENCODE_API_KEY,
+        OPENCODE_BASE_URL: config.OPENCODE_BASE_URL,
+      },
+    },
+  }),
+  sandbox: createJustBashSandbox({
+    overlayRoot: ".",
+  }),
+  sandboxConfig: {
+    workDir: "./",
+  },
+});
+
+export function createTUIAgent({
   agent,
   session,
 }: {
@@ -17,7 +42,7 @@ function createTUIAgent({
       return agent.generate({
         ...request,
         session,
-      } as Parameters<typeof agent.generate>[0]);
+      } satisfies Parameters<typeof agent.generate>[0]);
     },
     stream(request) {
       return agent.stream({
@@ -28,14 +53,16 @@ function createTUIAgent({
   } satisfies AgentTUIAgent;
 }
 
-const session = await agent.createSession();
+const session = await agent.createSession({
+  sessionId: "test-1",
+});
 
 try {
   await runAgentTUI({
-    title: "Codex",
+    title: "Pi",
     agent: createTUIAgent({ agent, session }),
     tools: "auto-collapsed",
-    reasoning: "collapsed",
+    reasoning: "auto-collapsed",
   });
 } finally {
   await session.destroy();

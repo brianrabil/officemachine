@@ -8,15 +8,20 @@
   },
   "dependencies": {
     "@ai-sdk/harness": "^1.0.18",
-    "@ai-sdk/harness-codex": "^1.0.19",
+    "@ai-sdk/harness-pi": "^1.0.18",
+    "@ai-sdk/sandbox-just-bash": "^1.0.18",
     "@ai-sdk/sandbox-vercel": "^1.0.18",
     "@ai-sdk/tui": "^1.0.15",
-    "@workspace/harness": "workspace:*"
+    "@earendil-works/pi-ai": "^0.80.3",
+    "@workspace/harness": "workspace:*",
+    "just-bash": "^3.0.2",
+    "zod": "^4.4.3",
+    "zod-config": "^1.4.0"
   },
   "devDependencies": {
     "@types/bun": "latest"
   },
   "peerDependencies": {
-    "typescript": "^5"
+    "typescript": "^6"
   }
 }
