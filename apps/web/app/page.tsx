@@ -1,6 +1,7 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
+import { MessageScroller } from "@shadcn/react/message-scroller";
 import { DefaultChatTransport } from "ai";
 import { useState } from "react";
 import { Button } from "@workspace/ui/components/button";
@@ -16,36 +17,54 @@ export default function Page() {
   });
 
   return (
-    <main className="mx-auto flex max-w-2xl flex-col gap-6 p-6">
-      <h1 className="text-2xl font-semibold">Harness chat test</h1>
+    <div className="mx-auto flex h-svh w-full max-w-2xl flex-col p-6">
+      <h1 className="mb-4 text-2xl font-semibold">Harness chat test</h1>
 
-      <div className="flex flex-col gap-3">
-        {messages.map((message) => (
-          <div key={message.id}>
-            <strong>{message.role === "user" ? "You: " : "AI: "}</strong>
-            {message.parts.map((part, index) => {
-              if (part.type === "text") {
-                return <span key={index}>{part.text}</span>;
-              }
-              if (part.type === "reasoning") {
-                return (
-                  <pre key={index} className="text-muted-foreground whitespace-pre-wrap">
-                    {part.text}
-                  </pre>
-                );
-              }
-              if (part.type.startsWith("tool-") || part.type === "dynamic-tool") {
-                return (
-                  <pre key={index} className="whitespace-pre-wrap">
-                    {JSON.stringify(part, null, 2)}
-                  </pre>
-                );
-              }
-              return null;
-            })}
-          </div>
-        ))}
-      </div>
+      <MessageScroller.Provider>
+        <MessageScroller.Root className="relative flex flex-1 flex-col overflow-hidden">
+          <MessageScroller.Viewport className="flex flex-1 flex-col overflow-y-auto">
+            <MessageScroller.Content className="flex flex-col gap-3">
+              {messages.map((message, index) => (
+                <MessageScroller.Item
+                  key={message.id}
+                  messageId={`message-${index}`}
+                  scrollAnchor={message.role === "user"}
+                >
+                  <div>
+                    <strong>{message.role === "user" ? "You: " : "AI: "}</strong>
+                    {message.parts.map((part, partIndex) => {
+                      if (part.type === "text") {
+                        return <span key={partIndex}>{part.text}</span>;
+                      }
+                      if (part.type === "reasoning") {
+                        return (
+                          <pre
+                            key={partIndex}
+                            className="text-muted-foreground whitespace-pre-wrap"
+                          >
+                            {part.text}
+                          </pre>
+                        );
+                      }
+                      if (part.type.startsWith("tool-") || part.type === "dynamic-tool") {
+                        return (
+                          <pre key={partIndex} className="whitespace-pre-wrap">
+                            {JSON.stringify(part, null, 2)}
+                          </pre>
+                        );
+                      }
+                      return null;
+                    })}
+                  </div>
+                </MessageScroller.Item>
+              ))}
+            </MessageScroller.Content>
+          </MessageScroller.Viewport>
+          <MessageScroller.Button className="absolute bottom-2 left-1/2 z-10 -translate-x-1/2 rounded-full border bg-background px-3 py-1 text-sm font-medium inert:opacity-0">
+            Jump to latest
+          </MessageScroller.Button>
+        </MessageScroller.Root>
+      </MessageScroller.Provider>
 
       <form
         onSubmit={(event) => {
@@ -55,7 +74,7 @@ export default function Page() {
             setInput("");
           }
         }}
-        className="flex gap-2"
+        className="mt-4 flex gap-2"
       >
         <Input
           value={input}
@@ -67,6 +86,6 @@ export default function Page() {
           Send
         </Button>
       </form>
-    </main>
+    </div>
   );
 }
