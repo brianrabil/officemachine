@@ -7,16 +7,8 @@
     "dev": "bun run ./src/main.ts"
   },
   "dependencies": {
-    "@ai-sdk/harness": "^1.0.18",
-    "@ai-sdk/harness-pi": "^1.0.18",
-    "@ai-sdk/sandbox-just-bash": "^1.0.18",
-    "@ai-sdk/sandbox-vercel": "^1.0.18",
     "@ai-sdk/tui": "^1.0.15",
-    "@earendil-works/pi-ai": "^0.80.3",
-    "@workspace/harness": "workspace:*",
-    "just-bash": "^3.0.2",
-    "zod": "^4.4.3",
-    "zod-config": "^1.4.0"
+    "@workspace/agent": "workspace:*"
   },
   "devDependencies": {
     "@types/bun": "latest"

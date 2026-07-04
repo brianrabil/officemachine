@@ -1,31 +1,7 @@
 import { runAgentTUI } from "@ai-sdk/tui";
 import { HarnessAgent, HarnessAgentSession } from "@ai-sdk/harness/agent";
 import { type AgentTUIAgent } from "@ai-sdk/tui";
-import { createJustBashSandbox } from "@ai-sdk/sandbox-just-bash";
-import { createPi } from "@ai-sdk/harness-pi";
-import { config } from "./config";
-import { getBuiltinModel } from "@earendil-works/pi-ai/providers/all";
-
-const model = getBuiltinModel("opencode-go", "deepseek-v4-flash");
-
-export const agent = new HarnessAgent({
-  id: "agent-1",
-  harness: createPi({
-    model: `${model.provider}/${model.name}`,
-    auth: {
-      customEnv: {
-        OPENCODE_API_KEY: config.OPENCODE_API_KEY,
-        OPENCODE_BASE_URL: config.OPENCODE_BASE_URL,
-      },
-    },
-  }),
-  sandbox: createJustBashSandbox({
-    overlayRoot: ".",
-  }),
-  sandboxConfig: {
-    workDir: "./",
-  },
-});
+import { agent } from "@workspace/agent/agent";
 
 export function createTUIAgent({
   agent,
@@ -53,9 +29,7 @@ export function createTUIAgent({
   } satisfies AgentTUIAgent;
 }
 
-const session = await agent.createSession({
-  sessionId: "test-1",
-});
+const session = await agent.createSession();
 
 try {
   await runAgentTUI({

@@ -1,0 +1,14 @@
+node_modules
+dist
+.data
+.nitro
+.cache
+.output
+.env
+.env.local
+.harness-sessions
+.harness-workspace
+
+*.db
+*.db-shm
+*.db-wal
