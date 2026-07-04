@@ -1,0 +1,20 @@
+{
+  "name": "@workspace/harness",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@ai-sdk/harness": "^1.0.18",
+    "@ai-sdk/harness-codex": "^1.0.19",
+    "@ai-sdk/sandbox-vercel": "^1.0.18",
+    "@ai-sdk/tui": "^1.0.15"
+  },
+  "exports": {
+    "./*": "./lib/*.ts"
+  }
+}
