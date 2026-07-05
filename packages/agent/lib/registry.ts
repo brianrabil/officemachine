@@ -1,25 +1,15 @@
-import { createProviderRegistry, customProvider, gateway } from "ai";
-import { ollama } from "ai-sdk-ollama";
-import { getBuiltinModel } from "@earendil-works/pi-ai/providers/all";
+import { type KnownProvider } from "@earendil-works/pi-ai";
+import { builtinProviders } from "@earendil-works/pi-ai/providers/all";
 
-export const model = getBuiltinModel("opencode-go", "deepseek-v4-flash");
+const SUPPORTED_PROVIDERS = [
+  "opencode-go",
+  "vercel-ai-gateway",
+] as const satisfies readonly KnownProvider[];
 
-export const registry = createProviderRegistry({
-  gateway: customProvider({
-    languageModels: {
-      "deepseek-v4-flash": gateway("deepseek/deepseek-v4-flash"),
-      "deepseek-v4-pro": gateway("deepseek/deepseek-v4-pro"),
-    },
-    fallbackProvider: gateway,
-  }),
-  ollama: customProvider({
-    languageModels: {
-      "gemma4:12b": ollama("gemma4:12b"),
-      "gemma4:12b-mlx": ollama("gemma4:12b-mlx"),
-    },
-    embeddingModels: {
-      embeddinggemma: ollama.embeddingModel("embeddinggemma:latest"),
-    },
-    fallbackProvider: ollama,
-  }),
-});
+type SupportedProvider = (typeof SUPPORTED_PROVIDERS)[number];
+type BuiltinProvider = ReturnType<typeof builtinProviders>[number];
+
+export const providers = builtinProviders().filter(
+  (provider): provider is BuiltinProvider & { id: SupportedProvider } =>
+    (SUPPORTED_PROVIDERS as readonly string[]).includes(provider.id),
+);

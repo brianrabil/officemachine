@@ -3,18 +3,18 @@ import {
   createUIMessageStreamResponse,
   generateId,
   toUIMessageStream,
-  type UIMessage,
 } from "ai";
 import { defineHandler } from "nitro";
-import { agent } from "@workspace/agent/agent";
+import { agent, type HarnessMessage } from "@workspace/agent/agent";
 import { detachAndPersist, resumeOrCreateSession } from "@workspace/agent/session-store";
-import { db } from "@workspace/db/client";
-import { chats, messages as messagesTable } from "@workspace/db/schema";
+import { config } from "@workspace/config";
+import { db } from "@workspace/storage/db";
+import { chats, messages as messagesTable } from "@workspace/storage/schema";
 
 export default defineHandler(async ({ req }) => {
   const body = (await req.json()) as {
     id?: string;
-    message: UIMessage;
+    message: HarnessMessage;
   };
 
   if (!body.id) {
@@ -23,7 +23,7 @@ export default defineHandler(async ({ req }) => {
 
   // The harness session owns conversation memory internally — only the
   // latest message is sent as fresh input for this turn, not the full
-  // history (see session-store.ts). @workspace/db separately stores every
+  // history (see session-store.ts). @workspace/storage separately stores every
   // UI message so the web app can hydrate a chat's history on navigation.
   const chatId = body.id;
 
@@ -40,10 +40,25 @@ export default defineHandler(async ({ req }) => {
   const session = await resumeOrCreateSession({ agent, chatId });
   const result = await agent.stream({ session, messages });
 
+  // HarnessAgent's stream never emits a `type: "start"` part (unlike
+  // streamText's), so attach metadata to the first chunk of any type instead.
+  let sentInitialMetadata = false;
+
   return createUIMessageStreamResponse({
-    stream: toUIMessageStream({
+    stream: toUIMessageStream<typeof agent.tools, HarnessMessage>({
       stream: result.stream,
       generateMessageId: generateId,
+      messageMetadata: () => {
+        if (!sentInitialMetadata) {
+          sentInitialMetadata = true;
+          return {
+            createdAt: Date.now(),
+            provider: config.DEFAULT_PROVIDER,
+            modelId: config.DEFAULT_MODEL,
+          };
+        }
+        return undefined;
+      },
       onEnd: async ({ responseMessage }) => {
         await db.insert(messagesTable).values({
           id: responseMessage.id,

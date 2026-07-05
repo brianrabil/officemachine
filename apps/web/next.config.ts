@@ -1,5 +1,5 @@
 import type { NextConfig } from "next";
-import { config } from "@workspace/agent/config";
+import { config } from "@workspace/config";
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["web.localhost"],
@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: `${config.HARNESS_API_ORIGIN}/api/:path*`,
+        destination: `${config.APP_API_URL}/api/:path*`,
       },
     ];
   },

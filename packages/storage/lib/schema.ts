@@ -1,5 +1,5 @@
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
-import type { UIMessage } from "ai";
+import type { HarnessMessage } from "@workspace/agent/agent";
 
 export const chats = sqliteTable("chats", {
   id: text("id").primaryKey(),
@@ -12,6 +12,6 @@ export const messages = sqliteTable("messages", {
     .notNull()
     .references(() => chats.id, { onDelete: "cascade" }),
   role: text("role", { enum: ["system", "user", "assistant"] }).notNull(),
-  parts: text("parts", { mode: "json" }).$type<UIMessage["parts"]>().notNull(),
+  parts: text("parts", { mode: "json" }).$type<HarnessMessage["parts"]>().notNull(),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });

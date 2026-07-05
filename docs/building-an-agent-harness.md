@@ -12,25 +12,25 @@ architecture, and how to build one — grounded in the concrete files in
 
 ## 1. What a harness is (and isn't)
 
-A **harness** is a complete agent *runtime* — Claude Code, Codex, or Pi — that owns
+A **harness** is a complete agent _runtime_ — Claude Code, Codex, or Pi — that owns
 capabilities larger than a single model call: workspace access, built-in coding
 tools, native session state, compaction, and permission flows. You do **not**
 rebuild the tool loop; the runtime drives the task and the AI SDK projects its
 output into familiar stream/response types.
 
-This is the opposite of a plain `generateText`/`streamText` tool loop, where *you*
+This is the opposite of a plain `generateText`/`streamText` tool loop, where _you_
 own the loop, the tools, and the full message history. Reach for a harness when you
 want an existing runtime to inspect and modify a sandboxed workspace across
 multi-turn sessions; reach for models when you want direct control of the call.
 
 The abstraction has **four pieces**, and it's worth holding them distinct:
 
-| Piece | Role | In this repo |
-|---|---|---|
-| `HarnessAgent` | The AI SDK agent you use in app code. Holds config, not live state. | `packages/agent/lib/agent.ts` |
-| Harness adapter | Connects to a runtime (Pi / Codex / Claude Code). | `@ai-sdk/harness-pi` via `createPi(...)` |
-| Sandbox provider | Isolated filesystem + process where the runtime executes. | `createDurableJustBashSandbox` |
-| Session | Live conversation + workspace state for one run. | `HarnessAgentSession` (session-store.ts) |
+| Piece            | Role                                                                | In this repo                             |
+| ---------------- | ------------------------------------------------------------------- | ---------------------------------------- |
+| `HarnessAgent`   | The AI SDK agent you use in app code. Holds config, not live state. | `packages/agent/lib/agent.ts`            |
+| Harness adapter  | Connects to a runtime (Pi / Codex / Claude Code).                   | `@ai-sdk/harness-pi` via `createPi(...)` |
+| Sandbox provider | Isolated filesystem + process where the runtime executes.           | `createDurableJustBashSandbox`           |
+| Session          | Live conversation + workspace state for one run.                    | `HarnessAgentSession` (session-store.ts) |
 
 Adapter ↔ sandbox is a compatibility decision, not a free choice. **Bridge-backed**
 runtimes (Claude Code, Codex) need a real network sandbox like
@@ -57,7 +57,7 @@ packages/agent   ← the harness core (everything below builds on this)
 apps/api    Nitro server: POST /api/chat (stream + resume), /api/start-workflow (durable)
 apps/tui    terminal UI via @ai-sdk/tui runAgentTUI
 apps/web    Next.js chat via useChat + DefaultChatTransport
-packages/db Drizzle + libsql
+packages/storage Drizzle + libsql + unstorage
 packages/ui shadcn component library
 ```
 
@@ -77,7 +77,7 @@ export const agent = new HarnessAgent({
   id: "agent-1",
   harness: createPi({
     model: `${model.provider}/${model.id}`,
-    auth: { customEnv: { OPENCODE_API_KEY: config.OPENCODE_API_KEY, /* ... */ } },
+    auth: { customEnv: { OPENCODE_API_KEY: config.OPENCODE_API_KEY /* ... */ } },
   }),
   sandbox: createDurableJustBashSandbox({ root: workspaceRoot }),
   sandboxConfig: { workDir: "./" },
@@ -102,7 +102,7 @@ Config and model selection are kept at boundaries:
 ## 4. Sessions and the memory model (the big idea)
 
 **A harness session owns its native conversation history.** When you pass messages,
-`HarnessAgent` takes the *latest user message* as the fresh input for the turn — it
+`HarnessAgent` takes the _latest user message_ as the fresh input for the turn — it
 does **not** replay the full prior conversation. This inverts the usual chatbot
 pattern and shows up in two places in this repo:
 
@@ -134,7 +134,7 @@ Create before running; end explicitly:
 - `session.detach()` — parks runtime + sandbox, returns resume state, keeps the
   sandbox warm. Use for HTTP routes needing multi-turn continuity.
 - `session.stop()` — saves resume state, then stops runtime + sandbox.
-- `session.suspendTurn()` — advanced: hand off an *active* turn across a process
+- `session.suspendTurn()` — advanced: hand off an _active_ turn across a process
   boundary; resume with `continueFrom` + `continueStream()`/`continueGenerate()`.
 
 ---
@@ -143,7 +143,7 @@ Create before running; end explicitly:
 
 Cross-turn continuity is split deliberately (`session-store.ts`):
 
-1. **Heavy state** — transcript and files — lives *with the sandbox provider* on
+1. **Heavy state** — transcript and files — lives _with the sandbox provider_ on
    disk. That's the durable substrate.
 2. **A tiny opaque resume-state token** from `session.detach()` is bookkept
    separately, keyed by `chatId`, and passed back as `resumeFrom` next turn.
@@ -151,9 +151,7 @@ Cross-turn continuity is split deliberately (`session-store.ts`):
 ```ts
 // resume
 const resumeFrom = await loadResumeState(chatId);
-return agent.createSession(resumeFrom
-  ? { sessionId: chatId, resumeFrom }
-  : { sessionId: chatId });
+return agent.createSession(resumeFrom ? { sessionId: chatId, resumeFrom } : { sessionId: chatId });
 
 // after the stream finishes
 const resumeState = await session.detach();
@@ -164,7 +162,7 @@ Within one process, `createSession({ resumeFrom })` hits the harness's in-memory
 parked-session fast path; across a restart it rehydrates from the on-disk session
 file. The token is stored on disk (not just a memory map) so it survives a restart —
 swap in a DB/KV without changing the pattern. `HarnessAgent` validates that the
-resume state came from the *same adapter* before using it.
+resume state came from the _same adapter_ before using it.
 
 The route wires persistence into the stream's completion:
 
@@ -188,14 +186,14 @@ session state evaporate when the process ends, and it deliberately omits
 cross-process resume actually works against — three changes, all quarantined here:
 
 1. **Back the FS with real disk** — `ReadWriteFs({ root })` instead of memory, so
-   the agent's files *and* Pi's mirrored transcript survive a restart.
-2. **Add `resumeSession`** delegating to `createSession`. Safe *because* state now
+   the agent's files _and_ Pi's mirrored transcript survive a restart.
+2. **Add `resumeSession`** delegating to `createSession`. Safe _because_ state now
    lives on `root`: a fresh sandbox over the same root **is** the resumed sandbox.
    Without it, `createSession({ resumeFrom })` throws
    `AI_HarnessCapabilityUnsupportedError`.
 3. **Pre-create `<root>/.pi-sessions`.** On detach, harness-pi mirrors the
    transcript via `mkdir -p` then `writeBinaryFile` — but the mkdir races the
-   detach teardown and the write ENOENTs *silently* (swallowed try/catch), so
+   detach teardown and the write ENOENTs _silently_ (swallowed try/catch), so
    nothing persists and resume finds an empty conversation. Giving the write a
    parent that already exists sidesteps the race. **This is the fix that makes
    resume real.**
@@ -204,7 +202,9 @@ cross-process resume actually works against — three changes, all quarantined h
 export function createDurableJustBashSandbox({ root }): HarnessV1SandboxProvider {
   mkdirSync(path.join(root, ".pi-sessions"), { recursive: true });
   const base = createJustBashSandbox({
-    fs: new ReadWriteFs({ root }), cwd: "/", defenseInDepth: false,
+    fs: new ReadWriteFs({ root }),
+    cwd: "/",
+    defenseInDepth: false,
   });
   return { ...base, resumeSession: (options) => base.createSession(options) };
 }
@@ -257,7 +257,7 @@ export async function codingWorkflow(input) {
   const resumeFrom = await loadResumeStep(input.sessionId);
   let state = createHarnessWorkflowState({ ...input, resumeFrom });
   while (state.status === "running" || state.status === "timed_out") {
-    state = await runSlice(state);      // each slice is a durable "use step"
+    state = await runSlice(state); // each slice is a durable "use step"
   }
   await persistResumeStep({ sessionId: state.sessionId, resumeState: state.resumeFrom });
   return finalizeHarnessWorkflow(state);
@@ -280,9 +280,15 @@ hand it to `runAgentTUI`. One session per process, `destroy()` in `finally`:
 ```ts
 const session = await agent.createSession();
 try {
-  await runAgentTUI({ title: "Pi", agent: createTUIAgent({ agent, session }),
-    tools: "auto-collapsed", reasoning: "auto-collapsed" });
-} finally { await session.destroy(); }
+  await runAgentTUI({
+    title: "Pi",
+    agent: createTUIAgent({ agent, session }),
+    tools: "auto-collapsed",
+    reasoning: "auto-collapsed",
+  });
+} finally {
+  await session.destroy();
+}
 ```
 
 **Web (`apps/web`)** — `useChat` + `DefaultChatTransport` pointed at `/api/chat`,
