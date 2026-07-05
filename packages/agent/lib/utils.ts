@@ -5,4 +5,5 @@ export function latestUserMessage(messages: Awaited<ReturnType<typeof convertToM
     const message = messages[index];
     if (message?.role === "user") return message;
   }
+  return undefined;
 }

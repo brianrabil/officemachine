@@ -3,9 +3,14 @@
   "type": "module",
   "scripts": {
     "build": "nitro build",
-    "dev": "nitro dev",
+    "dev": "portless",
+    "dev:app": "nitro dev",
     "preview": "nitro preview",
     "workflow:devtools": "bunx workflow web --backend @workflow-worlds/turso"
+  },
+  "portless": {
+    "name": "api",
+    "script": "dev:app"
   },
   "imports": {
     "#*": "./*"
@@ -23,11 +28,13 @@
     "@ai-sdk/sandbox-vercel": "^1.0.18",
     "@ai-sdk/workflow-harness": "^1.0.18",
     "@workspace/agent": "workspace:*",
+    "@workspace/db": "workspace:*",
     "@earendil-works/pi-ai": "^0.80.3",
     "@libsql/client": "^0.17.4",
     "@workflow-worlds/turso": "^0.2.2",
     "ai": "^7.0.15",
     "ai-sdk-ollama": "^4.0.0",
+    "drizzle-orm": "^0.45.2",
     "workflow": "^4.5.0",
     "zod": "^4.4.3",
     "zod-config": "^1.4.0"

@@ -1,16 +1,12 @@
-import type { HarnessAgentSession } from "@ai-sdk/harness/agent";
+import type { HarnessAgentResumeSessionState, HarnessAgentSession } from "@ai-sdk/harness/agent";
 
-/**
- * just-bash's sandbox provider has no `resumeSession` — its virtual
- * filesystem only exists on this process's heap, so a detach/resume-token
- * cycle (the pattern for bridge-backed sandboxes like Vercel's) can never
- * reconnect. Instead, keep the live session object in memory and reuse it
- * across turns for the same chat id.
- */
-const liveSessions = new Map<string, HarnessAgentSession>();
+const states: Record<string, HarnessAgentResumeSessionState | undefined> = {};
 
 type SessionFactory = {
-  createSession(options?: { sessionId?: string }): Promise<HarnessAgentSession>;
+  createSession(options?: {
+    sessionId?: string;
+    resumeFrom?: HarnessAgentResumeSessionState;
+  }): Promise<HarnessAgentSession>;
 };
 
 export async function resumeOrCreateSession({
@@ -19,11 +15,20 @@ export async function resumeOrCreateSession({
 }: {
   agent: SessionFactory;
   chatId: string;
-}): Promise<HarnessAgentSession> {
-  const existing = liveSessions.get(chatId);
-  if (existing) return existing;
+}) {
+  const resumeFrom = states[chatId];
 
-  const session = await agent.createSession({ sessionId: chatId });
-  liveSessions.set(chatId, session);
-  return session;
+  return agent.createSession(
+    resumeFrom ? { sessionId: chatId, resumeFrom } : { sessionId: chatId },
+  );
+}
+
+export async function detachAndPersist({
+  chatId,
+  session,
+}: {
+  chatId: string;
+  session: HarnessAgentSession;
+}) {
+  states[chatId] = await session.detach();
 }

@@ -17,6 +17,7 @@
   "devDependencies": {
     "oxfmt": "^0.57.0",
     "oxlint": "^1.72.0",
+    "shadcn": "^4.13.0",
     "turbo": "^2.10.3"
   },
   "overrides": {

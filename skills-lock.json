@@ -7,6 +7,12 @@
       "skillPath": "skills/find-skills/SKILL.md",
       "computedHash": "781bd6d3f9b19f8c9af6b53d8d0e4876d0183841b565db34ca7092ffa412d111"
     },
+    "portless": {
+      "source": "vercel-labs/portless",
+      "sourceType": "github",
+      "skillPath": "skills/portless/SKILL.md",
+      "computedHash": "0524d327402c4c29565791cb13dd959d0d03e4927c861dd22ab27d8fe8283460"
+    },
     "shadcn": {
       "source": "shadcn/ui",
       "sourceType": "github",

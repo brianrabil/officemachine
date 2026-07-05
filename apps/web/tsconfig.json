@@ -20,6 +20,7 @@
     ],
     "paths": {
       "@/*": ["./*"],
+      "@workspace/agent/*": ["../../packages/agent/lib/*"],
       "@workspace/ui/*": ["../../packages/ui/src/*"]
     }
   },

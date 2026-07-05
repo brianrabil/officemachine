@@ -8,6 +8,12 @@ dist/
 coverage/
 *.log
 *.tsbuildinfo
+*.db
+*.db-journal
+.chats/
+.harness-workspace/
+.pi-sessions/
+.resume-state/
 
 # Local agent customizations and skills
 .agents/

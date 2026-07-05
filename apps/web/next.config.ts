@@ -1,13 +1,13 @@
 import type { NextConfig } from "next";
-
-const apiOrigin = process.env.HARNESS_API_ORIGIN ?? "http://localhost:3000";
+import { config } from "@workspace/agent/config";
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: ["web.localhost"],
   async rewrites() {
     return [
       {
         source: "/api/:path*",
-        destination: `${apiOrigin}/api/:path*`,
+        destination: `${config.HARNESS_API_ORIGIN}/api/:path*`,
       },
     ];
   },

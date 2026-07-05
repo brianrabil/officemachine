@@ -1,14 +1,33 @@
 import { HarnessAgent } from "@ai-sdk/harness/agent";
 import { createPi } from "@ai-sdk/harness-pi";
 import { createJustBashSandbox } from "@ai-sdk/sandbox-just-bash";
-import { ReadWriteFs } from "just-bash";
-import { config } from "./config";
-import { getBuiltinModel } from "@earendil-works/pi-ai/providers/all";
+import { InMemoryFs, MountableFs, ReadWriteFs } from "just-bash";
 import type { InferUITools, UIMessage } from "ai";
-import path from "node:path";
+import { config } from "./config";
+import { model } from "./registry";
+import type { HarnessV1SandboxProvider } from "@ai-sdk/harness";
 
-const model = getBuiltinModel("opencode-go", "deepseek-v4-flash");
-const workspaceRoot = path.resolve(process.cwd(), ".harness-workspace");
+const sandbox: HarnessV1SandboxProvider = {
+  ...createJustBashSandbox({
+    cwd: "/workspace",
+    fs: new MountableFs({
+      base: new InMemoryFs(),
+      mounts: [
+        {
+          mountPoint: "/workspace",
+          filesystem: new ReadWriteFs({
+            root: config.HARNESS_DATA_DIR,
+          }),
+        },
+      ],
+    }),
+    defenseInDepth: false,
+    network: {
+      dangerouslyAllowFullInternetAccess: true,
+    },
+  }),
+  resumeSession: (o) => sandbox.createSession(o),
+};
 
 export const agent = new HarnessAgent({
   id: "agent-1",
@@ -21,15 +40,15 @@ export const agent = new HarnessAgent({
       },
     },
   }),
-  sandbox: createJustBashSandbox({
-    fs: new ReadWriteFs({ root: workspaceRoot }),
-    cwd: "/",
-    defenseInDepth: {
-      excludeViolationTypes: ["dynamic_import_builtin"],
-    },
-  }),
+  sandbox,
   sandboxConfig: {
     workDir: "./",
+    async onSession({ session, sessionWorkDir }) {
+      await session.writeTextFile({
+        path: `${sessionWorkDir}/.pi-sessions/.keep`,
+        content: "",
+      });
+    },
   },
 });
 

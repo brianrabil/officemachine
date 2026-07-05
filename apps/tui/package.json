@@ -4,7 +4,7 @@
   "main": "src/main.ts",
   "type": "module",
   "scripts": {
-    "dev": "bun run ./src/main.ts"
+    "tui:dev": "bun run ./src/main.ts"
   },
   "dependencies": {
     "@ai-sdk/tui": "^1.0.15",

@@ -1,5 +1,8 @@
 import { createProviderRegistry, customProvider, gateway } from "ai";
 import { ollama } from "ai-sdk-ollama";
+import { getBuiltinModel } from "@earendil-works/pi-ai/providers/all";
+
+export const model = getBuiltinModel("opencode-go", "deepseek-v4-flash");
 
 export const registry = createProviderRegistry({
   gateway: customProvider({
