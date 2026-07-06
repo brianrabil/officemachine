@@ -1,0 +1,24 @@
+{
+  "name": "@workspace/tui",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "cli-spinners": "^2.9.2",
+    "ink": "^4.1.0",
+    "react": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.32",
+    "typescript": "^5.0.3"
+  },
+  "exports": {
+    "./components/*": "./src/components/*.tsx",
+    "./components/ui/types": "./src/components/ui/types.ts",
+    "./hooks/*": "./src/hooks/*.ts",
+    "./lib/*": "./src/lib/*.ts"
+  }
+}

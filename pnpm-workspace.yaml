@@ -2,6 +2,7 @@ packages:
   - "apps/*"
   - "packages/*"
   - "!apps/terminal/frontend"
+  - "!apps/browser/frontend"
 allowBuilds:
   "@google/genai": true
   "@mongodb-js/zstd": true

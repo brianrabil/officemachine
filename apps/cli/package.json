@@ -1,21 +1,54 @@
 {
-  "name": "@workspace/cli",
-  "private": true,
-  "main": "src/main.ts",
-  "type": "module",
-  "scripts": {
-    "cli:dev": "NODE_EXTRA_CA_CERTS=$HOME/.portless/ca.pem tsx ./src/main.ts"
-  },
-  "dependencies": {
-    "@workspace/agent": "workspace:*",
-    "@workspace/agent-tui": "workspace:*",
-    "@workspace/config": "workspace:*",
-    "ai": "^7.0.15"
-  },
-  "devDependencies": {
-    "tsx": "^4.19.4"
-  },
-  "peerDependencies": {
-    "typescript": "^6"
-  }
+	"name": "@workspace/cli",
+	"version": "0.0.0",
+	"license": "MIT",
+	"bin": "dist/cli.js",
+	"type": "module",
+	"engines": {
+		"node": ">=16"
+	},
+	"scripts": {
+		"build": "tsc",
+		"dev": "tsc --watch",
+		"test": "xo && ava",
+		"demo:termcn": "tsx source/termcn-demo.tsx"
+	},
+	"files": [
+		"dist"
+	],
+	"dependencies": {
+		"@workspace/tui": "workspace:*",
+		"ink": "^4.1.0",
+		"meow": "^11.0.0",
+		"react": "^18.2.0"
+	},
+	"devDependencies": {
+		"@sindresorhus/tsconfig": "^3.0.1",
+		"@types/react": "^18.0.32",
+		"ava": "^5.2.0",
+		"chalk": "^5.2.0",
+		"eslint-config-xo-react": "^0.27.0",
+		"eslint-plugin-react": "^7.32.2",
+		"eslint-plugin-react-hooks": "^4.6.0",
+		"ink-testing-library": "^3.0.0",
+		"ts-node": "^10.9.1",
+		"tsx": "^4.19.4",
+		"typescript": "^5.0.3",
+		"xo": "^0.53.1"
+	},
+	"ava": {
+		"extensions": {
+			"ts": "module",
+			"tsx": "module"
+		},
+		"nodeArguments": [
+			"--loader=ts-node/esm"
+		]
+	},
+	"xo": {
+		"extends": "xo-react",
+		"rules": {
+			"react/prop-types": "off"
+		}
+	}
 }
