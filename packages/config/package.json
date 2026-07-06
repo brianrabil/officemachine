@@ -9,10 +9,13 @@
   },
   "dependencies": {
     "@dotenvx/dotenvx": "^2.1.4",
+    "files-sdk": "^2.0.0",
     "zod": "^4.4.3",
     "zod-config": "^1.4.0"
   },
   "exports": {
-    ".": "./lib/config.ts"
+    "./settings": "./lib/settings.ts",
+    "./env": "./lib/env.ts",
+    "./files": "./lib/files.ts"
   }
 }

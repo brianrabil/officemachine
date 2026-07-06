@@ -151,9 +151,16 @@ export function Chat({
     transport: new DefaultChatTransport({
       api: "/api/chat",
       // only send the last message to the server — the harness session
-      // owns conversation memory, so replaying full history isn't needed
+      // owns conversation memory, so replaying full history isn't needed.
+      // The chat id is a path param on this route, not part of the body.
       prepareSendMessagesRequest({ messages, id }) {
-        return { body: { message: messages[messages.length - 1], id } };
+        return { api: `/api/chat/${id}`, body: { message: messages[messages.length - 1] } };
+      },
+      // The chat's own id (not a workflow run id) is enough to reconnect —
+      // the server looks up which workflow run is currently backing this
+      // chat, so there's nothing to track client-side between requests.
+      prepareReconnectToStreamRequest({ id }) {
+        return { api: `/api/chat/${id}/stream` };
       },
     }),
     onError: (error) => {

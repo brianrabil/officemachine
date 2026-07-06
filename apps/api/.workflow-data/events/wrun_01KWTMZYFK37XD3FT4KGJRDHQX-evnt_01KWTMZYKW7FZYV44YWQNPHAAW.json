@@ -1,0 +1,12 @@
+{
+  "eventType": "hook_created",
+  "specVersion": 3,
+  "correlationId": "hook_01KWTMZYHQTDTFPEK6WW92HRAP",
+  "eventData": {
+    "token": "chat:test-chat-1",
+    "isWebhook": false
+  },
+  "runId": "wrun_01KWTMZYFK37XD3FT4KGJRDHQX",
+  "eventId": "evnt_01KWTMZYKW7FZYV44YWQNPHAAW",
+  "createdAt": "2026-07-06T02:44:21.756Z"
+}

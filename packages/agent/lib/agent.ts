@@ -1,26 +1,40 @@
 import { HarnessAgent } from "@ai-sdk/harness/agent";
 import { createPi } from "@ai-sdk/harness-pi";
+import type { InferUITools, UIMessage } from "ai";
+import { env } from "@workspace/config/env";
+import { settings } from "@workspace/config/settings";
+import { z } from "zod";
 import { createJustBashSandbox } from "@ai-sdk/sandbox-just-bash";
 import { InMemoryFs, MountableFs, ReadWriteFs } from "just-bash";
-import type { InferUITools, UIMessage } from "ai";
-import { z } from "zod";
-import { config } from "@workspace/config";
 import type { HarnessV1SandboxProvider } from "@ai-sdk/harness";
+import path from "node:path";
 
-const sandbox: HarnessV1SandboxProvider = {
+export const workspaceDrive = new MountableFs({
+  base: new ReadWriteFs({ root: process.cwd() }),
+  mounts: [
+    {
+      mountPoint: "/.pi-sessions",
+      filesystem: new ReadWriteFs({
+        root: path.join(env.APP_CONFIG_DIR, "sessions"),
+      }),
+    },
+  ],
+});
+
+export const drive = new MountableFs({
+  base: new InMemoryFs(),
+  mounts: [
+    {
+      mountPoint: "/workspace",
+      filesystem: workspaceDrive,
+    },
+  ],
+});
+
+export const sandbox: HarnessV1SandboxProvider = {
   ...createJustBashSandbox({
     cwd: "/workspace",
-    fs: new MountableFs({
-      base: new InMemoryFs(),
-      mounts: [
-        {
-          mountPoint: "/workspace",
-          filesystem: new ReadWriteFs({
-            root: process.cwd(),
-          }),
-        },
-      ],
-    }),
+    fs: drive,
     defenseInDepth: false,
     network: {
       dangerouslyAllowFullInternetAccess: true,
@@ -30,14 +44,14 @@ const sandbox: HarnessV1SandboxProvider = {
 };
 
 export const agent = new HarnessAgent({
-  id: "agent-1",
+  id: "zero-harness",
   harness: createPi({
-    model: `${config.DEFAULT_PROVIDER}/${config.DEFAULT_MODEL}`,
+    model: `${settings.defaultProvider}/${settings.defaultModel}`,
     auth: {
-      customEnv: config.OPENCODE_API_KEY
+      customEnv: env.OPENCODE_API_KEY
         ? {
-            OPENCODE_API_KEY: config.OPENCODE_API_KEY,
-            OPENCODE_BASE_URL: config.OPENCODE_BASE_URL,
+            OPENCODE_API_KEY: env.OPENCODE_API_KEY,
+            OPENCODE_BASE_URL: env.OPENCODE_BASE_URL,
           }
         : {},
     },
@@ -59,6 +73,7 @@ export const messageMetadataSchema = z.object({
   provider: z.string().optional(),
   modelId: z.string().optional(),
 });
+
 export type HarnessMessageMetadata = z.infer<typeof messageMetadataSchema>;
 
 export type HarnessMessage = UIMessage<

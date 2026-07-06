@@ -1,0 +1,11 @@
+{
+  "eventType": "step_started",
+  "specVersion": 3,
+  "correlationId": "step_01KWTD3DCEDVWAS92PGWP9AFZ4",
+  "eventData": {
+    "stepName": "step//./workflows/harness-workflow/persist-message-step//persistMessageStep"
+  },
+  "runId": "wrun_01KWTD3DAE4VVVZZJ8G07FRZ6M",
+  "eventId": "evnt_01KWTD3DHTJF8CKFSDP2NKRJPK",
+  "createdAt": "2026-07-06T00:26:26.746Z"
+}

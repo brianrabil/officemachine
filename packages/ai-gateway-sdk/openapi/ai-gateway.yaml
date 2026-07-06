@@ -1,0 +1,994 @@
+openapi: 3.0.3
+info:
+  title: AI Gateway REST API
+  version: v1
+  description: >-
+    Hand-authored spec for Vercel's AI Gateway REST API
+    (https://vercel.com/docs/ai-gateway/sdks-and-apis/rest-api). Vercel does
+    not publish a machine-readable OpenAPI/Swagger document for this API, so
+    this file mirrors the documented REST reference and is kept in sync
+    manually. See the `packages/ai-gateway-sdk:sync-openapi-spec` skill for
+    the re-sync procedure. This covers only the lookup/discovery endpoints
+    (models, credits, generation, spend reports) — sending inference
+    requests goes through the Chat Completions, Responses, Anthropic
+    Messages, or OpenResponses APIs, which are not modeled here.
+externalDocs:
+  description: AI Gateway REST API reference (source of truth for this spec)
+  url: https://vercel.com/docs/ai-gateway/sdks-and-apis/rest-api
+servers:
+  - url: https://ai-gateway.vercel.sh
+security:
+  - bearerAuth: []
+paths:
+  /v1/models:
+    get:
+      operationId: listModels
+      summary: List all available models.
+      description: >-
+        Follows the OpenAI models API format. No authentication required.
+      security: []
+      responses:
+        '200':
+          description: List of available models.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListModelsResponse'
+              example:
+                object: list
+                data:
+                  - id: google/gemini-3.1-pro-preview
+                    object: model
+                    created: 1755815280
+                    released: 1763424000
+                    owned_by: google
+                    name: Gemini 3.1 Pro Preview
+                    description: >-
+                      This model improves upon Gemini 2.5 Pro and is catered
+                      towards challenging tasks, especially those involving
+                      complex reasoning or agentic workflows.
+                    context_window: 1000000
+                    max_tokens: 64000
+                    type: language
+                    tags: [file-input, tool-use, reasoning, vision]
+                    pricing:
+                      input: '0.000002'
+                      output: '0.000012'
+                      input_cache_read: '0.0000002'
+                      input_cache_write: '0.000002'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponse'
+        '503':
+          description: A backing service is misconfigured or unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnavailableResponse'
+
+  /v1/models/{creator}/{model}/endpoints:
+    get:
+      operationId: getModelEndpoints
+      summary: Get every provider endpoint serving a model.
+      description: >-
+        Returns per-endpoint pricing, capabilities, uptime, and throughput
+        for every provider serving the given model. No authentication
+        required.
+      security: []
+      parameters:
+        - name: creator
+          in: path
+          required: true
+          description: >-
+            The model creator/owner segment of the model id, e.g. "google"
+            in "google/gemini-3.1-pro-preview".
+          schema:
+            type: string
+        - name: model
+          in: path
+          required: true
+          description: >-
+            The model name segment of the model id, e.g.
+            "gemini-3.1-pro-preview" in "google/gemini-3.1-pro-preview".
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Every provider endpoint serving this model.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetModelEndpointsResponse'
+        '404':
+          description: Model not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundResponse'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponse'
+        '503':
+          description: A backing service is misconfigured or unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnavailableResponse'
+
+  /v1/credits:
+    get:
+      operationId: getCredits
+      summary: Check the team's AI Gateway Credits balance and total spend.
+      description: >-
+        Returns the team's current AI Gateway Credits balance and lifetime
+        spend. The team is inferred from the API key or Vercel OIDC token.
+      responses:
+        '200':
+          description: Credit balance and total spend.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditsResponse'
+              example:
+                balance: '95.50'
+                total_used: '4.50'
+        '401':
+          description: Authentication failed (invalid API key or OIDC token).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedResponse'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponse'
+        '503':
+          description: A backing service is misconfigured or unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnavailableResponse'
+
+  /v1/generation:
+    get:
+      operationId: getGeneration
+      summary: Look up cost, latency, and token usage for a specific generation.
+      description: >-
+        Generation information becomes available shortly after the
+        generation completes. Much of this data is also returned in
+        `providerMetadata` on the chat completion response. Generation IDs
+        are returned as the `id` field on every chat completion response,
+        and injected into the first content chunk on streaming responses so
+        you can capture them before the stream completes.
+      parameters:
+        - name: id
+          in: query
+          required: true
+          description: 'The generation ID to look up. Format: gen_<ulid>.'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Cost, latency, and token usage for the generation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetGenerationResponse'
+              example:
+                data:
+                  id: gen_01ARZ3NDEKTSV4RRFFQ69G5FAV
+                  total_cost: 0.00123
+                  upstream_inference_cost: 0
+                  usage: 0.00123
+                  created_at: '2026-05-22T00:00:00.000Z'
+                  model: anthropic/claude-opus-4.8
+                  is_byok: false
+                  provider_name: anthropic
+                  streamed: true
+                  finish_reason: stop
+                  latency: 200
+                  generation_time: 1500
+                  tokens_prompt: 100
+                  tokens_completion: 50
+                  native_tokens_prompt: 100
+                  native_tokens_completion: 50
+                  native_tokens_reasoning: 0
+                  native_tokens_cached: 0
+                  native_tokens_cache_creation: 0
+                  billable_web_search_calls: 0
+        '400':
+          description: Invalid request parameters.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestResponse'
+        '401':
+          description: Authentication failed (invalid API key or OIDC token).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedResponse'
+        '404':
+          description: Generation not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundResponse'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponse'
+        '503':
+          description: A backing service is misconfigured or unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnavailableResponse'
+
+  /v1/report:
+    get:
+      operationId: getSpendReport
+      summary: Query aggregated spend reports for the team.
+      description: >-
+        Returns aggregated spend over a date range. The team is inferred
+        from the API key or OIDC token. Available on Pro and Enterprise
+        plans only — Hobby and Pro-trial plans cannot use this endpoint.
+        Custom Reporting is billed per query; see
+        https://vercel.com/docs/ai-gateway/observability-and-spend/custom-reporting
+        for pricing. It can take a few minutes for requests to appear in
+        this endpoint. Each row contains only the single grouping field
+        that matches `group_by`, plus the aggregated metrics.
+      parameters:
+        - name: start_date
+          in: query
+          required: true
+          description: Start date in YYYY-MM-DD format, inclusive, UTC.
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          required: true
+          description: End date in YYYY-MM-DD format, inclusive, UTC.
+          schema:
+            type: string
+            format: date
+        - name: group_by
+          in: query
+          description: >-
+            How to aggregate results. Each row represents one bucket of this
+            dimension.
+          schema:
+            $ref: '#/components/schemas/SpendReportGroupBy'
+            default: day
+        - name: date_part
+          in: query
+          description: >-
+            Time granularity. Only applies when group_by=day. Use "hour" for
+            per-hour rows, "day" for per-day rows.
+          schema:
+            $ref: '#/components/schemas/SpendReportDatePart'
+            default: day
+        - name: user_id
+          in: query
+          description: Filter by a specific user ID.
+          schema:
+            type: string
+        - name: model
+          in: query
+          description: Filter by a specific model in creator/model-name format.
+          schema:
+            type: string
+        - name: provider
+          in: query
+          description: Filter by provider.
+          schema:
+            type: string
+        - name: credential_type
+          in: query
+          description: Filter by credential type.
+          schema:
+            $ref: '#/components/schemas/SpendReportCredentialType'
+        - name: zero_data_retention
+          in: query
+          description: Filter to Zero Data Retention (ZDR)-requested vs non-ZDR requests.
+          schema:
+            type: boolean
+        - name: tags
+          in: query
+          description: >-
+            Filter by one or more comma-separated tags. By default, requests
+            match when they contain any listed tag.
+          schema:
+            type: string
+        - name: tags_match
+          in: query
+          description: >-
+            Match mode for `tags`. Use "any" to match requests with any
+            listed tag, or "all" to require every listed tag.
+          schema:
+            $ref: '#/components/schemas/SpendReportTagsMatch'
+            default: any
+      responses:
+        '200':
+          description: Aggregated spend report rows.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpendReportResponse'
+              example:
+                results:
+                  - model: anthropic/claude-sonnet-4.6
+                    total_cost: 10.5
+                    market_cost: 12.0
+                    surcharge_cost: 0.5
+                    gateway_cost: 0
+                    input_tokens: 1000
+                    output_tokens: 500
+                    cached_input_tokens: 200
+                    cache_creation_input_tokens: 50
+                    reasoning_tokens: 100
+                    request_count: 25
+        '400':
+          description: Invalid request parameters.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestResponse'
+        '401':
+          description: Authentication failed (invalid API key or OIDC token).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedResponse'
+        '403':
+          description: >-
+            This endpoint requires a paid plan. Hobby and Pro-trial plans
+            cannot query spend reports.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenResponse'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponse'
+        '503':
+          description: A backing service is misconfigured or unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnavailableResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: >-
+        Either an AI Gateway API key or (on Vercel deployments) a Vercel
+        OIDC token, passed as `Authorization: Bearer <token>`. AI Gateway
+        infers the team from the key/token. This SDK does not inject the
+        header automatically — pass it via the fetch `options` argument on
+        each call.
+
+  schemas:
+    ModelType:
+      type: string
+      enum:
+        - language
+        - embedding
+        - reranking
+        - image
+        - video
+
+    PricingTier:
+      type: object
+      description: One tier of context-size-based tiered pricing.
+      required:
+        - cost
+        - min
+      properties:
+        cost:
+          type: string
+          description: Cost per token for this tier.
+        min:
+          type: number
+          description: Minimum token count for this tier (inclusive).
+        max:
+          type: number
+          description: >-
+            Maximum token count for this tier (exclusive). Omitted for the
+            highest tier.
+
+    ModelPricing:
+      type: object
+      description: >-
+        Pricing information. Structure varies by model type — most fields
+        are optional and only present for the relevant model type.
+      properties:
+        input:
+          type: string
+          description: Base cost per input token.
+        input_tiers:
+          type: array
+          description: Tiered pricing for input tokens, when applicable.
+          items:
+            $ref: '#/components/schemas/PricingTier'
+        output:
+          type: string
+          description: Base cost per output token (language models only).
+        output_tiers:
+          type: array
+          description: Tiered pricing for output tokens, when applicable.
+          items:
+            $ref: '#/components/schemas/PricingTier'
+        input_cache_read:
+          type: string
+          description: Cost per cached input token (read).
+        input_cache_write:
+          type: string
+          description: Cost per input token (cache write).
+        image:
+          type: string
+          description: Cost per generated image (image models only).
+        web_search:
+          type: string
+          description: Cost per web search request.
+
+    Model:
+      type: object
+      required:
+        - id
+        - object
+        - created
+        - released
+        - owned_by
+        - name
+        - description
+        - context_window
+        - max_tokens
+        - type
+        - tags
+        - pricing
+      properties:
+        id:
+          type: string
+          description: Model identifier, e.g. "openai/gpt-5.5".
+        object:
+          type: string
+          description: Always "model".
+        created:
+          type: integer
+          description: Unix timestamp when the model was added to AI Gateway.
+        released:
+          type: integer
+          description: Unix timestamp when the model was released by its creator.
+        owned_by:
+          type: string
+          description: Model provider or owner.
+        name:
+          type: string
+          description: Human-readable model name.
+        description:
+          type: string
+          description: Model description.
+        context_window:
+          type: integer
+          description: Maximum context length in tokens.
+        max_tokens:
+          type: integer
+          description: Maximum output tokens.
+        type:
+          $ref: '#/components/schemas/ModelType'
+        tags:
+          type: array
+          description: >-
+            Capability tags, e.g. "reasoning", "tool-use", "vision",
+            "file-input".
+          items:
+            type: string
+        pricing:
+          $ref: '#/components/schemas/ModelPricing'
+
+    ListModelsResponse:
+      type: object
+      required:
+        - object
+        - data
+      properties:
+        object:
+          type: string
+          description: Always "list".
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Model'
+
+    ModelArchitecture:
+      type: object
+      required:
+        - tokenizer
+        - instruct_type
+        - modality
+        - input_modalities
+        - output_modalities
+      properties:
+        tokenizer:
+          type: string
+          nullable: true
+          description: Tokenizer name, when known.
+        instruct_type:
+          type: string
+          nullable: true
+          description: Instruction-tuning format, when known.
+        modality:
+          type: string
+          description: >-
+            Input/output modality string, e.g. "text+image+file→text".
+        input_modalities:
+          type: array
+          description: Supported input types, e.g. "text", "image", "file".
+          items:
+            type: string
+        output_modalities:
+          type: array
+          description: Supported output types, e.g. "text".
+          items:
+            type: string
+
+    EndpointPricing:
+      type: object
+      required:
+        - prompt
+        - completion
+      properties:
+        prompt:
+          type: string
+          description: Cost per prompt token.
+        completion:
+          type: string
+          description: Cost per completion token.
+        input_cache_read:
+          type: string
+          description: Cost per cached input token (read).
+        input_cache_write:
+          type: string
+          description: Cost per input token (cache write).
+
+    PercentileStats:
+      type: object
+      required:
+        - p50
+        - p95
+      properties:
+        p50:
+          type: number
+          description: 50th percentile value.
+        p95:
+          type: number
+          description: 95th percentile value.
+
+    ModelEndpoint:
+      type: object
+      description: One provider's endpoint serving a model.
+      required:
+        - name
+        - model_name
+        - context_length
+        - pricing
+        - provider_name
+        - max_completion_tokens
+        - supported_parameters
+        - status
+        - uptime_last_15m
+        - uptime_last_1h
+        - uptime_last_1d
+        - throughput_last_1h
+        - latency_last_1h
+        - supports_implicit_caching
+      properties:
+        name:
+          type: string
+          description: >-
+            Endpoint display name, e.g. "google | google/gemini-3.1-pro-preview".
+        model_name:
+          type: string
+          description: Human-readable model name.
+        context_length:
+          type: integer
+          description: Maximum context window in tokens for this endpoint.
+        pricing:
+          $ref: '#/components/schemas/EndpointPricing'
+        provider_name:
+          type: string
+          description: Provider name, e.g. "google", "anthropic".
+        max_completion_tokens:
+          type: integer
+          description: Maximum output tokens for this endpoint.
+        supported_parameters:
+          type: array
+          description: >-
+            API parameters supported by this endpoint, e.g. "max_tokens",
+            "temperature", "tools", "reasoning".
+          items:
+            type: string
+        status:
+          type: integer
+          description: Endpoint status. 0 is active.
+        uptime_last_15m:
+          type: number
+          description: Uptime percentage over the last 15 minutes.
+        uptime_last_1h:
+          type: number
+          description: Uptime percentage over the last hour.
+        uptime_last_1d:
+          type: number
+          description: Uptime percentage over the last day.
+        throughput_last_1h:
+          allOf:
+            - $ref: '#/components/schemas/PercentileStats'
+          description: p50/p95 throughput in tokens/sec over the last hour.
+        latency_last_1h:
+          allOf:
+            - $ref: '#/components/schemas/PercentileStats'
+          description: p50/p95 time to first token in ms over the last hour.
+        supports_implicit_caching:
+          type: boolean
+          description: Whether the provider supports automatic prompt caching.
+
+    ModelEndpointsDetail:
+      type: object
+      required:
+        - id
+        - name
+        - created
+        - released
+        - description
+        - architecture
+        - endpoints
+      properties:
+        id:
+          type: string
+          description: Model identifier.
+        name:
+          type: string
+          description: Human-readable model name.
+        created:
+          type: integer
+          description: Unix timestamp when the model was added to AI Gateway.
+        released:
+          type: integer
+          description: Unix timestamp when the model was released by its creator.
+        description:
+          type: string
+          description: Model description.
+        architecture:
+          $ref: '#/components/schemas/ModelArchitecture'
+        endpoints:
+          type: array
+          items:
+            $ref: '#/components/schemas/ModelEndpoint'
+
+    GetModelEndpointsResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/ModelEndpointsDetail'
+
+    CreditsResponse:
+      type: object
+      required:
+        - balance
+        - total_used
+      properties:
+        balance:
+          type: string
+          description: Remaining credit balance, in USD.
+        total_used:
+          type: string
+          description: Total credits used to date, in USD.
+
+    Generation:
+      type: object
+      required:
+        - id
+        - total_cost
+        - upstream_inference_cost
+        - usage
+        - created_at
+        - model
+        - is_byok
+        - provider_name
+        - streamed
+        - finish_reason
+        - latency
+        - generation_time
+        - tokens_prompt
+        - tokens_completion
+        - native_tokens_prompt
+        - native_tokens_completion
+        - native_tokens_reasoning
+        - native_tokens_cached
+        - native_tokens_cache_creation
+        - billable_web_search_calls
+      properties:
+        id:
+          type: string
+          description: The generation ID.
+        total_cost:
+          type: number
+          description: >-
+            Total cost in USD for this generation, including any surcharges
+            (e.g. Zero Data Retention or Custom Reporting writes).
+        upstream_inference_cost:
+          type: number
+          description: >-
+            Market price the provider would have charged for the inference.
+            Non-zero only for BYOK generations, where total_cost does not
+            include this amount; 0 otherwise.
+        usage:
+          type: number
+          description: >-
+            Same as total_cost. Kept for compatibility with the OpenRouter
+            schema this endpoint mirrors.
+        created_at:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when the generation was created.
+        model:
+          type: string
+          description: Model identifier used for this generation.
+        is_byok:
+          type: boolean
+          description: Whether this generation used Bring Your Own Key (BYOK) credentials.
+        provider_name:
+          type: string
+          description: The provider that served this generation.
+        streamed:
+          type: boolean
+          description: Whether this generation used streaming.
+        finish_reason:
+          type: string
+          description: >-
+            Why the generation ended, e.g. "stop", "length",
+            "content_filter", "tool_calls".
+        latency:
+          type: integer
+          description: Time to first token in milliseconds.
+        generation_time:
+          type: integer
+          description: Total generation time in milliseconds.
+        tokens_prompt:
+          type: integer
+          description: Number of prompt tokens.
+        tokens_completion:
+          type: integer
+          description: Number of completion tokens.
+        native_tokens_prompt:
+          type: integer
+          description: Native prompt tokens (provider-specific).
+        native_tokens_completion:
+          type: integer
+          description: Native completion tokens (provider-specific).
+        native_tokens_reasoning:
+          type: integer
+          description: Reasoning tokens used.
+        native_tokens_cached:
+          type: integer
+          description: Cached input tokens read.
+        native_tokens_cache_creation:
+          type: integer
+          description: Cache creation tokens written.
+        billable_web_search_calls:
+          type: integer
+          description: Number of billable web search calls performed during this generation.
+
+    GetGenerationResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Generation'
+
+    SpendReportGroupBy:
+      type: string
+      description: How to aggregate spend report results.
+      enum:
+        - day
+        - user
+        - model
+        - tag
+        - provider
+        - credential_type
+        - zero_data_retention
+        - api_key_name
+
+    SpendReportDatePart:
+      type: string
+      description: Time granularity when group_by=day.
+      enum:
+        - day
+        - hour
+
+    SpendReportCredentialType:
+      type: string
+      enum:
+        - byok
+        - system
+
+    SpendReportTagsMatch:
+      type: string
+      enum:
+        - any
+        - all
+
+    SpendReportRow:
+      type: object
+      description: >-
+        One aggregated row. Only the grouping field matching the request's
+        group_by is present alongside the metrics — this schema lists all
+        possible grouping fields together for reference, but a real response
+        row contains just one of them.
+      required:
+        - total_cost
+        - market_cost
+        - surcharge_cost
+        - gateway_cost
+        - input_tokens
+        - output_tokens
+        - cached_input_tokens
+        - cache_creation_input_tokens
+        - reasoning_tokens
+        - request_count
+      properties:
+        day:
+          type: string
+          description: >-
+            Present when group_by=day and date_part=day (default). The UTC
+            date for the bucket (YYYY-MM-DD).
+        hour:
+          type: string
+          description: >-
+            Present when group_by=day and date_part=hour. The UTC hour for
+            the bucket (YYYY-MM-DDTHH).
+        user:
+          type: string
+          description: Present when group_by=user. The user ID attached to the request.
+        model:
+          type: string
+          description: >-
+            Present when group_by=model. The model in creator/model-name
+            form.
+        tag:
+          type: string
+          description: >-
+            Present when group_by=tag. A single tag value (one row per tag
+            in the request).
+        provider:
+          type: string
+          description: Present when group_by=provider. The provider that served the request.
+        credential_type:
+          type: string
+          description: 'Present when group_by=credential_type. "byok" or "system".'
+        zero_data_retention:
+          type: string
+          description: 'Present when group_by=zero_data_retention. "true" or "false".'
+        api_key_name:
+          type: string
+          description: >-
+            Present when group_by=api_key_name. The human-readable name of
+            the API key that served the request.
+        total_cost:
+          type: number
+          description: Charged price in USD. Returns 0.00 for BYOK requests.
+        market_cost:
+          type: number
+          description: >-
+            Market price of the request at the time it ran. Includes both
+            BYOK and non-BYOK cost.
+        surcharge_cost:
+          type: number
+          description: >-
+            Surcharge portion of total_cost (e.g. from add-on capabilities).
+        gateway_cost:
+          type: number
+          description: AI Gateway's own cost, separate from the provider rate.
+        input_tokens:
+          type: number
+          description: Input tokens used.
+        output_tokens:
+          type: number
+          description: Output tokens used.
+        cached_input_tokens:
+          type: number
+          description: Cached input tokens.
+        cache_creation_input_tokens:
+          type: number
+          description: Cache creation tokens.
+        reasoning_tokens:
+          type: number
+          description: Reasoning tokens.
+        request_count:
+          type: number
+          description: Number of requests in this row.
+
+    SpendReportResponse:
+      type: object
+      required:
+        - results
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SpendReportRow'
+
+    ErrorDetail:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: Human-readable error message.
+        type:
+          type: string
+          description: >-
+            Machine-readable error type discriminator, e.g.
+            "invalid_request_error". Not all endpoints include this.
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          $ref: '#/components/schemas/ErrorDetail'
+
+    BadRequestResponse:
+      description: >-
+        Invalid request body, missing required fields, or validation error.
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+
+    UnauthorizedResponse:
+      description: Authentication failed (invalid API key or OIDC token).
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+
+    ForbiddenResponse:
+      description: >-
+        Endpoint requires a paid plan (e.g. Hobby and Pro-trial cannot query
+        /v1/report).
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+
+    NotFoundResponse:
+      description: 'Resource not found (e.g. a generation that does not exist).'
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+
+    InternalServerErrorResponse:
+      description: Internal server error.
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+
+    UnavailableResponse:
+      description: A backing service is misconfigured or unavailable.
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'

@@ -1,0 +1,20 @@
+{
+  "runId": "wrun_01KWTD3DAE4VVVZZJ8G07FRZ6M",
+  "stepId": "step_01KWTD3DCEDVWAS92PGWP9AFZ4",
+  "stepName": "step//./workflows/harness-workflow/persist-message-step//persistMessageStep",
+  "status": "completed",
+  "input": {
+    "__type": "Uint8Array",
+    "data": "ZGV2bFt7ImFyZ3MiOjEsImNsb3N1cmVWYXJzIjotMSwidGhpc1ZhbCI6LTF9LFsyXSx7ImNoYXRJZCI6MywibWVzc2FnZSI6NH0sIm10LXRlc3QtMSIseyJpZCI6NSwicm9sZSI6NiwicGFydHMiOjd9LCJtc2ctMSIsInVzZXIiLFs4XSx7InR5cGUiOjksInRleHQiOjEwfSwidGV4dCIsImhpIl0="
+  },
+  "attempt": 1,
+  "startedAt": "2026-07-06T00:26:26.746Z",
+  "createdAt": "2026-07-06T00:26:26.646Z",
+  "updatedAt": "2026-07-06T00:26:26.749Z",
+  "specVersion": 3,
+  "output": {
+    "__type": "Uint8Array",
+    "data": "ZGV2bC0x"
+  },
+  "completedAt": "2026-07-06T00:26:26.749Z"
+}

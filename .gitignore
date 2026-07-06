@@ -1,20 +1,21 @@
 node_modules/
-dist/
-.turbo/
+dist
+
+.turbo
 .env
 .env.*
 !.env.example
 .DS_Store
 coverage/
+
 *.log
 *.tsbuildinfo
 *.db
 *.db-journal
-.chats/
-.harness-workspace/
-.pi-sessions/
-.resume-state/
-.data/
+
 
 # Local agent customizations and skills
-.agents/
+.agents
+.claude
+.zero-harness/*
+!.zero-harness/settings.example.json5

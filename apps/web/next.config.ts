@@ -3,6 +3,7 @@ import { config } from "@workspace/config";
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["web.localhost"],
+  transpilePackages: ["@wterm/dom", "@wterm/react"],
   async rewrites() {
     return [
       {

@@ -1,0 +1,13 @@
+# zig
+.zig-cache/
+zig-out/
+
+# frontend (next.js)
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/next-env.d.ts
+frontend/*.tsbuildinfo
+
+# misc
+.DS_Store

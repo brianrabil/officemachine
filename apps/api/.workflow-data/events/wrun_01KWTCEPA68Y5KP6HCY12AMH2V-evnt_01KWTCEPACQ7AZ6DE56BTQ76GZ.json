@@ -1,0 +1,22 @@
+{
+  "eventType": "run_created",
+  "specVersion": 3,
+  "eventData": {
+    "deploymentId": "dpl_local@4.2.0",
+    "workflowName": "workflow//./workflows/harness-workflow/workflow//codingWorkflow",
+    "input": {
+      "__type": "Uint8Array",
+      "data": "ZGV2bFtbMV0seyJwcm9tcHQiOjIsInNlc3Npb25JZCI6OCwidXNlck1lc3NhZ2UiOjl9LHsicm9sZSI6MywiY29udGVudCI6NH0sInVzZXIiLFs1XSx7InR5cGUiOjYsInRleHQiOjd9LCJ0ZXh0IiwiaGkiLCJwZXJzaXN0LXRlc3QtY2hhdCIseyJpZCI6MTAsInJvbGUiOjMsInBhcnRzIjoxMX0sIm1zZy0xIixbMTJdLHsidHlwZSI6NiwidGV4dCI6N31d"
+    },
+    "executionContext": {
+      "traceCarrier": {},
+      "workflowCoreVersion": "4.5.0",
+      "features": {
+        "encryption": false
+      }
+    }
+  },
+  "runId": "wrun_01KWTCEPA68Y5KP6HCY12AMH2V",
+  "eventId": "evnt_01KWTCEPACQ7AZ6DE56BTQ76GZ",
+  "createdAt": "2026-07-06T00:15:07.596Z"
+}

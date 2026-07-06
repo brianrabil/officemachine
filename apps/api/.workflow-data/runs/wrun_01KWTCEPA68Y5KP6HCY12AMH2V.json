@@ -1,0 +1,27 @@
+{
+  "runId": "wrun_01KWTCEPA68Y5KP6HCY12AMH2V",
+  "deploymentId": "dpl_local@4.2.0",
+  "workflowName": "workflow//./workflows/harness-workflow/workflow//codingWorkflow",
+  "specVersion": 3,
+  "executionContext": {
+    "traceCarrier": {},
+    "workflowCoreVersion": "4.5.0",
+    "features": {
+      "encryption": false
+    }
+  },
+  "input": {
+    "__type": "Uint8Array",
+    "data": "ZGV2bFtbMV0seyJwcm9tcHQiOjIsInNlc3Npb25JZCI6OCwidXNlck1lc3NhZ2UiOjl9LHsicm9sZSI6MywiY29udGVudCI6NH0sInVzZXIiLFs1XSx7InR5cGUiOjYsInRleHQiOjd9LCJ0ZXh0IiwiaGkiLCJwZXJzaXN0LXRlc3QtY2hhdCIseyJpZCI6MTAsInJvbGUiOjMsInBhcnRzIjoxMX0sIm1zZy0xIixbMTJdLHsidHlwZSI6NiwidGV4dCI6N31d"
+  },
+  "createdAt": "2026-07-06T00:15:07.596Z",
+  "startedAt": "2026-07-06T00:15:07.653Z",
+  "status": "failed",
+  "error": {
+    "message": "Step \"step//./workflows/harness-workflow/run-slice-step//runSlice\" failed after 3 retries: ReadWriteFs root does not exist",
+    "stack": "Error: ReadWriteFs root does not exist\n    at xs (/Users/rabilb/Developer/agent-harness/node_modules/.bun/just-bash@3.0.2/node_modules/just-bash/dist/bundle/index.js:707:7108)\n    at new Ds (/Users/rabilb/Developer/agent-harness/node_modules/.bun/just-bash@3.0.2/node_modules/just-bash/dist/bundle/index.js:707:23974)\n    at ../../packages/agent/lib/sandbox.ts (/Users/rabilb/Developer/agent-harness/apps/api/node_modules/.nitro/dev/index.mjs:74273:20)\n    at __init (/Users/rabilb/Developer/agent-harness/apps/api/node_modules/.nitro/dev/index.mjs:39544:52)\n    at ../../packages/agent/lib/agent.ts (/Users/rabilb/Developer/agent-harness/apps/api/node_modules/.nitro/dev/index.mjs:74304:2)\n    at __init (/Users/rabilb/Developer/agent-harness/apps/api/node_modules/.nitro/dev/index.mjs:39544:52)\n    at <anonymous> (/Users/rabilb/Developer/agent-harness/apps/api/node_modules/.nitro/dev/index.mjs:74513:64)\n    at processTicksAndRejections (native:7:39)",
+    "code": "USER_ERROR"
+  },
+  "completedAt": "2026-07-06T00:15:11.769Z",
+  "updatedAt": "2026-07-06T00:15:11.769Z"
+}

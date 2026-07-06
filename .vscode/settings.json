@@ -11,5 +11,5 @@
   "[typescriptreact]": {
     "editor.defaultFormatter": "oxc.oxc-vscode"
   },
-  "cSpell.words": ["OPENCODE"]
+  "cSpell.words": ["bunx", "ollama", "OPENCODE", "turso"]
 }

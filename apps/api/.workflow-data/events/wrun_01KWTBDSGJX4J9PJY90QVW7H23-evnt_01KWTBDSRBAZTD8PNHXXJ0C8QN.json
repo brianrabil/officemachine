@@ -1,0 +1,15 @@
+{
+  "eventType": "step_completed",
+  "specVersion": 3,
+  "correlationId": "step_01KWTBDSJQHTM6HPK4TRT0PMVY",
+  "eventData": {
+    "stepName": "step//./workflows/harness-workflow/resume-store//loadResumeStep",
+    "result": {
+      "__type": "Uint8Array",
+      "data": "ZGV2bC0x"
+    }
+  },
+  "runId": "wrun_01KWTBDSGJX4J9PJY90QVW7H23",
+  "eventId": "evnt_01KWTBDSRBAZTD8PNHXXJ0C8QN",
+  "createdAt": "2026-07-05T23:57:09.771Z"
+}

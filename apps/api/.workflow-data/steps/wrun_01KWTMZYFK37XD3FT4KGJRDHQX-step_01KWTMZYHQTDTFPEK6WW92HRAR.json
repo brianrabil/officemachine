@@ -1,0 +1,20 @@
+{
+  "runId": "wrun_01KWTMZYFK37XD3FT4KGJRDHQX",
+  "stepId": "step_01KWTMZYHQTDTFPEK6WW92HRAR",
+  "stepName": "step//./server/workflows/harness/steps/extract-prompt//extractPrompt",
+  "status": "completed",
+  "input": {
+    "__type": "Uint8Array",
+    "data": "ZGV2bFt7ImFyZ3MiOjEsImNsb3N1cmVWYXJzIjotMSwidGhpc1ZhbCI6LTF9LFsyXSx7ImlkIjozLCJyb2xlIjo0LCJwYXJ0cyI6NX0sIm1zZy0xIiwidXNlciIsWzZdLHsidHlwZSI6NywidGV4dCI6OH0sInRleHQiLCJoZWxsbyJd"
+  },
+  "attempt": 1,
+  "startedAt": "2026-07-06T02:44:22.064Z",
+  "createdAt": "2026-07-06T02:44:21.966Z",
+  "updatedAt": "2026-07-06T02:44:22.068Z",
+  "specVersion": 3,
+  "output": {
+    "__type": "Uint8Array",
+    "data": "ZGV2bFt7InJvbGUiOjEsImNvbnRlbnQiOjJ9LCJ1c2VyIixbM10seyJ0eXBlIjo0LCJ0ZXh0Ijo1fSwidGV4dCIsImhlbGxvIl0="
+  },
+  "completedAt": "2026-07-06T02:44:22.068Z"
+}

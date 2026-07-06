@@ -1,0 +1,13 @@
+{
+  "eventType": "step_failed",
+  "specVersion": 3,
+  "correlationId": "step_01KWTBDSJQHTM6HPK4TRT0PMVZ",
+  "eventData": {
+    "stepName": "step//./workflows/harness-workflow/run-slice-step//runSlice",
+    "error": "Step \"step//./workflows/harness-workflow/run-slice-step//runSlice\" failed after 3 retries: ReadWriteFs root does not exist",
+    "stack": "Error: ReadWriteFs root does not exist\n    at xs (/Users/rabilb/Developer/agent-harness/node_modules/.bun/just-bash@3.0.2/node_modules/just-bash/dist/bundle/index.js:707:7108)\n    at new Ds (/Users/rabilb/Developer/agent-harness/node_modules/.bun/just-bash@3.0.2/node_modules/just-bash/dist/bundle/index.js:707:23974)\n    at ../../packages/agent/lib/sandbox.ts (/Users/rabilb/Developer/agent-harness/apps/api/node_modules/.nitro/dev/index.mjs:60249:20)\n    at __init (/Users/rabilb/Developer/agent-harness/apps/api/node_modules/.nitro/dev/index.mjs:37570:52)\n    at ../../packages/agent/lib/agent.ts (/Users/rabilb/Developer/agent-harness/apps/api/node_modules/.nitro/dev/index.mjs:60280:2)\n    at __init (/Users/rabilb/Developer/agent-harness/apps/api/node_modules/.nitro/dev/index.mjs:37570:52)\n    at <anonymous> (/Users/rabilb/Developer/agent-harness/apps/api/node_modules/.nitro/dev/index.mjs:60337:64)\n    at processTicksAndRejections (native:7:39)"
+  },
+  "runId": "wrun_01KWTBDSGJX4J9PJY90QVW7H23",
+  "eventId": "evnt_01KWTBDX8DJ2YP1STQ38ZNR6CG",
+  "createdAt": "2026-07-05T23:57:13.357Z"
+}
