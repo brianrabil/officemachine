@@ -243,7 +243,7 @@ export function Viewport() {
     const w = canvasArea.width;
     const h = canvasArea.height;
     if (w > 0 && h > 0) {
-      runCmd("set", "viewport", String(w), String(h));
+      runCmd("set", "viewport", String(w), String(h), String(window.devicePixelRatio || 1));
     }
   }, [canvasArea, runCmd]);
 
@@ -252,7 +252,7 @@ export function Viewport() {
       if (canvasArea.width <= 0) return;
       const avail = { w: canvasArea.width, h: canvasArea.height };
       const { w, h } = computePresetSize(ratio, avail.w, avail.h);
-      runCmd("set", "viewport", String(w), String(h));
+      runCmd("set", "viewport", String(w), String(h), String(window.devicePixelRatio || 1));
     },
     [canvasArea, runCmd],
   );
@@ -264,7 +264,7 @@ export function Viewport() {
     const w = parseInt(match[1], 10);
     const h = parseInt(match[2], 10);
     if (w > 0 && h > 0) {
-      runCmd("set", "viewport", String(w), String(h));
+      runCmd("set", "viewport", String(w), String(h), String(window.devicePixelRatio || 1));
     }
   }, [customValue, runCmd]);
 
@@ -287,9 +287,16 @@ export function Viewport() {
   const handleResetDevice = useCallback(async () => {
     setActiveDevice(null);
     if (canvasArea.width > 0 && canvasArea.height > 0) {
-      await runCmd("set", "viewport", String(canvasArea.width), String(canvasArea.height));
+      await runCmd("set", "viewport", String(canvasArea.width), String(canvasArea.height), String(window.devicePixelRatio || 1));
     }
   }, [canvasArea.width, canvasArea.height, runCmd]);
+
+  useEffect(() => {
+    if (activeDevice || navigating) return;
+    if (canvasArea.width <= 0 || canvasArea.height <= 0) return;
+    if (isFit) return;
+    handleFit();
+  }, [activeDevice, navigating, canvasArea.width, canvasArea.height, isFit, handleFit]);
 
   const handleSetColorScheme = useCallback(async (scheme: ColorScheme) => {
     setColorScheme(scheme);

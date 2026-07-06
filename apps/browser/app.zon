@@ -20,13 +20,13 @@
     },
     .security = .{
         .navigation = .{
-            .allowed_origins = .{ "zero://app", "zero://inline", "http://127.0.0.1:3000", "http://localhost:4848" },
+            .allowed_origins = .{ "zero://app", "zero://inline", "http://127.0.0.1:3010", "http://localhost:4848" },
             .external_links = .{ .action = "deny" },
         },
     },
     .web_engine = "chromium",
     .cef = .{ .dir = "third_party/cef/macos", .auto_install = false },
     .windows = .{
-        .{ .label = "main", .title ="Browser", .width = 720, .height = 480, .restore_state = true },
+        .{ .label = "main", .title ="Browser", .width = 720, .height = 480, .restore_state = true, .titlebar = .custom },
     },
 }

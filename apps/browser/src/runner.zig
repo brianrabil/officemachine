@@ -22,6 +22,7 @@ pub const RunOptions = struct {
     window_title: []const u8 = "",
     bundle_id: []const u8,
     icon_path: []const u8 = "assets/icon.icns",
+    main_window: zero_native.WindowOptions = .{},
     bridge: ?zero_native.BridgeDispatcher = null,
     builtin_bridge: zero_native.BridgePolicy = .{},
     security: zero_native.SecurityPolicy = .{},
@@ -33,6 +34,7 @@ pub const RunOptions = struct {
             .window_title = self.window_title,
             .bundle_id = self.bundle_id,
             .icon_path = self.icon_path,
+            .main_window = self.main_window,
         };
     }
 };

@@ -85,7 +85,7 @@ export default function DashboardPage() {
   if (isDesktop) {
     if (!hasSessions) {
       return (
-        <div className="flex h-screen flex-col bg-background">
+        <div className="flex h-full flex-col bg-background">
           <ResizablePanelGroup
             orientation="horizontal"
             className="min-h-0 flex-1"
@@ -117,7 +117,7 @@ export default function DashboardPage() {
     }
 
     return (
-      <div className="flex h-screen flex-col bg-background">
+      <div className="flex h-full flex-col bg-background">
         <ResizablePanelGroup
           orientation="horizontal"
           className="min-h-0 flex-1"
@@ -139,7 +139,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex h-screen flex-col bg-background">
+    <div className="flex h-full flex-col bg-background">
       <Tabs defaultValue="viewport" className="min-h-0 flex-1">
         <div className="shrink-0 px-2 pt-2">
           <TabsList className="w-full">

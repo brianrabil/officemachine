@@ -10,8 +10,8 @@ const App = struct {
     fn app(self: *@This()) zero_native.App {
         return .{
             .context = self,
-            .name ="browser",
-            .source = zero_native.frontend.productionSource(.{ .dist ="frontend/out" }),
+            .name = "browser",
+            .source = zero_native.frontend.productionSource(.{ .dist = "frontend/out" }),
             .source_fn = source,
         };
     }
@@ -19,21 +19,22 @@ const App = struct {
     fn source(context: *anyopaque) anyerror!zero_native.WebViewSource {
         const self: *@This() = @ptrCast(@alignCast(context));
         return zero_native.frontend.sourceFromEnv(self.env_map, .{
-            .dist ="frontend/out",
+            .dist = "frontend/out",
             .entry = "index.html",
         });
     }
 };
 
-const dev_origins = [_][]const u8{ "zero://app", "zero://inline", "http://127.0.0.1:3000", "http://localhost:4848" };
+const dev_origins = [_][]const u8{ "zero://app", "zero://inline", "http://127.0.0.1:3010", "http://localhost:4848" };
 
 pub fn main(init: std.process.Init) !void {
     var app = App{ .env_map = init.environ_map };
     try runner.runWithOptions(app.app(), .{
-        .app_name ="Browser",
-        .window_title ="Browser",
-        .bundle_id ="dev.zero_native.browser",
+        .app_name = "Browser",
+        .window_title = "Browser",
+        .bundle_id = "dev.zero_native.browser",
         .icon_path = "assets/icon.icns",
+        .main_window = .{ .titlebar = .custom },
         .security = .{
             .navigation = .{ .allowed_origins = &dev_origins },
         },
@@ -41,5 +42,5 @@ pub fn main(init: std.process.Init) !void {
 }
 
 test "app name is configured" {
-    try std.testing.expectEqualStrings("browser","browser");
+    try std.testing.expectEqualStrings("browser", "browser");
 }
