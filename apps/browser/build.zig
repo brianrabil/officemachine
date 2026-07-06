@@ -26,7 +26,7 @@ const PackageTarget = enum {
     linux,
 };
 
-const default_zero_native_path ="/Users/rabilb/.vite-plus/js_runtime/node/24.16.0/lib/node_modules/zero-native";
+const default_zero_native_path = "third_party/zero-native-vendored";
 const app_exe_name = "browser";
 
 pub fn build(b: *std.Build) void {
@@ -239,8 +239,74 @@ fn linkPlatform(b: *std.Build, target: std.Build.ResolvedTarget, app_mod: *std.B
                 exe.step.dependOn(&cef_check.step);
                 const include_arg = b.fmt("-I{s}", .{cef_dir});
                 const define_arg = b.fmt("-DZERO_NATIVE_CEF_DIR=\"{s}\"", .{cef_dir});
-                const sdk_include = if (b.sysroot) |sysroot| b.fmt("-I{s}/usr/include", .{sysroot}) else "";
-                const flags: []const []const u8 = if (b.sysroot) |sysroot| &.{ "-fobjc-arc", "-ObjC++", "-std=c++17", "-stdlib=libc++", "-mmacosx-version-min=11.0", "-isysroot", sysroot, sdk_include, include_arg, define_arg } else &.{ "-fobjc-arc", "-ObjC++", "-std=c++17", "-stdlib=libc++", "-mmacosx-version-min=11.0", include_arg, define_arg };
+                // Modern Xcode SDKs (26.x+) trip Zig's bundled libc++ into a
+                // macro clash with Apple's math.h (isinf/isfinite/signbit) and
+                // fail "unsupported compiler" checks in system headers. This
+                // flag set is a known-working fix (already proven in
+                // ~/Developer/browser's apps/browser): make Apple's headers
+                // think they're seeing a recognized recent clang, tell libc++
+                // math.h already provides isinf/signbit, and demote the SDK's
+                // plain includes below Zig's own via -idirafter so Zig's
+                // libc++ wins the ambiguous declarations.
+                const apple_clang_compat = [_][]const u8{
+                    "-D__clang__",
+                    "-D__clang_major__=20",
+                    "-D__clang_minor__=1",
+                    "-D__apple_build_version__=17000000",
+                    "-D__APPLE_CC__=6000",
+                    "-D__GNUC__=14",
+                    "-D__GNUC_MINOR__=0",
+                    "-D__GNUC_PATCHLEVEL__=0",
+                    "-D__NO_MATH_INLINES",
+                    "-D_LIBCPP_NO_EXCEPTIONS",
+                    "-D_LIBCPP_MATH_H_HAS_ISINF",
+                    "-D_LIBCPP_MATH_H_HAS_SIGNBIT",
+                    "-D_LIBCPP_DISABLE_AVAILABILITY",
+                };
+                const flags: []const []const u8 = if (b.sysroot) |sysroot| blk: {
+                    const sdk_usr_include = b.fmt("{s}/usr/include", .{sysroot});
+                    const base = [_][]const u8{
+                        "-fobjc-arc",
+                        "-ObjC++",
+                        "-std=c++17",
+                        "-stdlib=libc++",
+                        "-mmacosx-version-min=11.0",
+                        "-isysroot",
+                        sysroot,
+                        include_arg,
+                        "-idirafter",
+                        sdk_usr_include,
+                        define_arg,
+                        "-DGL_SILENCE_DEPRECATION",
+                        "-Wno-nullability-completeness",
+                        "-Wno-unguarded-availability",
+                        "-Wno-deprecated-declarations",
+                        "-Wno-unknown-warning-option",
+                        "-Wno-macro-redefined",
+                        "-D_LIBCPP_HAS_NO_VENDOR_AVAILABILITY_ANNOTATIONS",
+                    };
+                    const combined = base ++ apple_clang_compat;
+                    break :blk combined[0..];
+                } else blk: {
+                    const base = [_][]const u8{
+                        "-fobjc-arc",
+                        "-ObjC++",
+                        "-std=c++17",
+                        "-stdlib=libc++",
+                        "-mmacosx-version-min=11.0",
+                        include_arg,
+                        define_arg,
+                        "-DGL_SILENCE_DEPRECATION",
+                        "-Wno-nullability-completeness",
+                        "-Wno-unguarded-availability",
+                        "-Wno-deprecated-declarations",
+                        "-Wno-unknown-warning-option",
+                        "-Wno-macro-redefined",
+                        "-D_LIBCPP_HAS_NO_VENDOR_AVAILABILITY_ANNOTATIONS",
+                    };
+                    const combined = base ++ apple_clang_compat;
+                    break :blk combined[0..];
+                };
                 app_mod.addCSourceFile(.{ .file = zeroNativePath(b, zero_native_path, "src/platform/macos/cef_host.mm"), .flags = flags });
                 app_mod.addObjectFile(b.path(b.fmt("{s}/libcef_dll_wrapper/libcef_dll_wrapper.a", .{cef_dir})));
                 app_mod.addFrameworkPath(b.path(b.fmt("{s}/Release", .{cef_dir})));

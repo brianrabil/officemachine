@@ -12,19 +12,19 @@
         .entry = "index.html",
         .spa_fallback = true,
         .dev = .{
-            .url ="http://127.0.0.1:3000/",
-            .command = .{ "npm", "--prefix", "frontend", "run", "dev" },
+            .url ="http://localhost:4848/",
+            .command = .{ "agent-browser", "dashboard", "start" },
             .ready_path = "/",
             .timeout_ms = 30000,
         },
     },
     .security = .{
         .navigation = .{
-            .allowed_origins = .{ "zero://app", "zero://inline", "http://127.0.0.1:3000" },
+            .allowed_origins = .{ "zero://app", "zero://inline", "http://127.0.0.1:3000", "http://localhost:4848" },
             .external_links = .{ .action = "deny" },
         },
     },
-    .web_engine = "system",
+    .web_engine = "chromium",
     .cef = .{ .dir = "third_party/cef/macos", .auto_install = false },
     .windows = .{
         .{ .label = "main", .title ="Browser", .width = 720, .height = 480, .restore_state = true },
