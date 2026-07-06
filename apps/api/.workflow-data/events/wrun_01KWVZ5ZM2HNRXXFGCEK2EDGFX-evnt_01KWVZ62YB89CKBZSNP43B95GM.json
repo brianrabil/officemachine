@@ -1,0 +1,11 @@
+{
+  "eventType": "step_started",
+  "specVersion": 3,
+  "correlationId": "step_01KWVZ5ZM6N454KBK579FD9S6G",
+  "eventData": {
+    "stepName": "step//./server/workflows/harness/steps/persist-message//persistMessage"
+  },
+  "runId": "wrun_01KWVZ5ZM2HNRXXFGCEK2EDGFX",
+  "eventId": "evnt_01KWVZ62YB89CKBZSNP43B95GM",
+  "createdAt": "2026-07-06T15:01:42.987Z"
+}

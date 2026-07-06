@@ -1,0 +1,17 @@
+{
+  "name": "@workspace/agent-tui",
+  "type": "module",
+  "exports": {
+    "./*": "./lib/*.ts"
+  },
+  "dependencies": {
+    "ai": "^7.0.15"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^6"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "eventType": "run_created",
+  "specVersion": 3,
+  "eventData": {
+    "deploymentId": "dpl_local@4.2.0",
+    "workflowName": "workflow//./server/workflows/harness/workflow//harnessWorkflow",
+    "input": {
+      "__type": "Uint8Array",
+      "data": "ZGV2bFtbMV0seyJzZXNzaW9uSWQiOjIsIm1lc3NhZ2UiOjN9LCI5OGRmOWE4OS1jYzU0LTQwMTYtYTUzMC1kNGFlZmNjODNhM2IiLHsiaWQiOjQsInJvbGUiOjUsInBhcnRzIjo2fSwibWVzc2FnZS0xIiwidXNlciIsWzddLHsidHlwZSI6OCwidGV4dCI6OX0sInRleHQiLCJoaSJd"
+    },
+    "executionContext": {
+      "traceCarrier": {},
+      "workflowCoreVersion": "4.5.0",
+      "features": {
+        "encryption": false
+      }
+    }
+  },
+  "runId": "wrun_01KWVZBMCXYZCN6Z80TH8N8NFZ",
+  "eventId": "evnt_01KWVZBMCYKE4MZ5DG819F0BB9",
+  "createdAt": "2026-07-06T15:04:44.702Z"
+}

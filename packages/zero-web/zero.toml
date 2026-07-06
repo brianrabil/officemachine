@@ -1,0 +1,8 @@
+[package]
+name = "zero-web"
+version = "0.1.0"
+license = "MIT"
+
+[targets.cli]
+kind = "exe"
+main = "src/main.0"

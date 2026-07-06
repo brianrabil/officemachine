@@ -1,0 +1,11 @@
+{
+  "runId": "wrun_01KWVZENENX6Z2FM45NX0Y6E75",
+  "hookId": "hook_01KWVZENETP3DN2PQGQJ3WT072",
+  "token": "chat:debug-test-1",
+  "ownerId": "local-owner",
+  "projectId": "local-project",
+  "environment": "local",
+  "createdAt": "2026-07-06T15:06:24.164Z",
+  "specVersion": 3,
+  "isWebhook": false
+}

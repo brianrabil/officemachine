@@ -4,11 +4,13 @@
   "main": "src/main.ts",
   "type": "module",
   "scripts": {
-    "tui:dev": "bun run ./src/main.ts"
+    "tui:dev": "NODE_EXTRA_CA_CERTS=$HOME/.portless/ca.pem bun run ./src/main.ts"
   },
   "dependencies": {
-    "@ai-sdk/tui": "^1.0.15",
-    "@workspace/agent": "workspace:*"
+    "@workspace/agent": "workspace:*",
+    "@workspace/agent-tui": "workspace:*",
+    "@workspace/config": "workspace:*",
+    "ai": "^7.0.15"
   },
   "devDependencies": {
     "@types/bun": "latest"

@@ -4,17 +4,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Terminal, useTerminal } from "@wterm/react";
 import type { WTerm } from "@wterm/dom";
 import type { TerminalCore } from "@wterm/core";
-import { SquareTerminalIcon } from "lucide-react";
 import { GhosttyCore } from "@wterm/ghostty";
 import "@wterm/react/css";
 
 export default function Home() {
-  const [bridge, setBridge] = useState("checking...");
-
-  useEffect(() => {
-    setBridge((window as any).zero ? "available" : "not enabled");
-  }, []);
-
   const [debugEnabled] = useState(
     () => typeof window !== "undefined" && new URLSearchParams(window.location.search).has("debug"),
   );
@@ -65,18 +58,6 @@ export default function Home() {
 
   return (
     <div className="flex size-full flex-col">
-      <header className="flex items-center justify-between gap-4 border-b border-border px-4 py-3">
-        <div className="flex items-center gap-2.5">
-          <div className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <SquareTerminalIcon className="size-4" />
-          </div>
-          <span className="text-sm font-medium text-foreground">OfficeMachine Terminal</span>
-        </div>
-        <div className="card">
-          <span>Native bridge</span>
-          <strong>{bridge}</strong>
-        </div>
-      </header>
       <main className="flex flex-1 overflow-hidden">
         <Terminal
           ref={ref}

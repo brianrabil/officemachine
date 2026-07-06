@@ -7,7 +7,7 @@
   "scripts": {
     "build": "nitro build",
     "dev": "portless",
-    "dev:app": "nitro dev",
+    "dev:app": "bun node_modules/nitro/dist/cli/index.mjs dev",
     "preview": "nitro preview"
   },
   "dependencies": {

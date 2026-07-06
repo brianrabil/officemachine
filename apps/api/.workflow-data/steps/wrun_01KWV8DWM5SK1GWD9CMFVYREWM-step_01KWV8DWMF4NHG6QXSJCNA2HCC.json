@@ -1,0 +1,15 @@
+{
+  "runId": "wrun_01KWV8DWM5SK1GWD9CMFVYREWM",
+  "stepId": "step_01KWV8DWMF4NHG6QXSJCNA2HCC",
+  "stepName": "step//./server/workflows/harness/steps/run-slice//runSlice",
+  "status": "running",
+  "input": {
+    "__type": "Uint8Array",
+    "data": "ZGV2bFt7ImFyZ3MiOjEsImNsb3N1cmVWYXJzIjotMSwidGhpc1ZhbCI6LTF9LFsyXSx7InNlc3Npb25JZCI6MywicHJvbXB0Ijo0LCJzdGF0dXMiOjEwfSwiZGZiYmFlZGYtMzdmYS00MzcyLTk2MjYtNTU2NGM3NTBkYjhjIix7InJvbGUiOjUsImNvbnRlbnQiOjZ9LCJ1c2VyIixbN10seyJ0eXBlIjo4LCJ0ZXh0Ijo5fSwidGV4dCIsInNheSBleGFjdGx5IHRoZSB3b3JkIGJhbmFuYSBhbmQgbm90aGluZyBlbHNlIiwicnVubmluZyJd"
+  },
+  "attempt": 4,
+  "startedAt": "2026-07-06T08:24:01.785Z",
+  "createdAt": "2026-07-06T08:24:01.736Z",
+  "updatedAt": "2026-07-06T15:40:29.589Z",
+  "specVersion": 3
+}

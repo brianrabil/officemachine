@@ -1,0 +1,39 @@
+use web
+use items
+
+// Native HTTP server. `zero run .` (invoke `zero` by absolute path) binds a
+// loopback socket and dispatches each request to handle() below. The host
+// runtime discovers handle by naming convention and calls it per request with
+// a caller-owned response buffer.
+
+pub fn main(world: World) -> Void raises {
+    check std.http.listen(world, 8080_u16)
+}
+
+// handle is the dispatcher. Zero has no function pointers, so there is no
+// runtime router/registry: the if/else chain IS the router. This is the
+// idiomatic Zero pattern (see the ping-pong-api and crm-api examples).
+fn handle(request: Span<u8>, response: MutSpan<u8>) -> Maybe<Span<u8>> {
+    // CORS preflight for the items collection.
+    if isOptions(request, "/items") {
+        return corsPreflight(response, "*", "GET, POST, OPTIONS", "content-type, authorization")
+    }
+    if isGet(request, "/health") {
+        return ok(response, "{\"ok\":true,\"service\":\"zero-web\"}")
+    }
+    if isGet(request, "/items") {
+        return listItems(response)
+    }
+    if isPost(request, "/items") {
+        return createItem(request, response)
+    }
+    // /items/:id — GET on a two-segment path whose first segment is "items".
+    if std.http.requestMethodIs(request, "GET") {
+        let count: usize = pathSegmentCount(request)
+        let seg0: Maybe<Span<u8>> = pathSegment(request, 0)
+        if count == 2 && seg0.has && std.mem.eql(seg0.value, "items") {
+            return showItem(request, response)
+        }
+    }
+    return notFound(response, "{\"error\":\"not_found\"}")
+}

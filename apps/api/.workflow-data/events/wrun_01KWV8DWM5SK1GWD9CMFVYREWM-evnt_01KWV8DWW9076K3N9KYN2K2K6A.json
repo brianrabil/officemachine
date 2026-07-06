@@ -1,0 +1,11 @@
+{
+  "eventType": "step_started",
+  "specVersion": 3,
+  "correlationId": "step_01KWV8DWMF4NHG6QXSJCNA2HCB",
+  "eventData": {
+    "stepName": "step//./server/workflows/harness/steps/extract-prompt//extractPrompt"
+  },
+  "runId": "wrun_01KWV8DWM5SK1GWD9CMFVYREWM",
+  "eventId": "evnt_01KWV8DWW9076K3N9KYN2K2K6A",
+  "createdAt": "2026-07-06T08:24:01.673Z"
+}

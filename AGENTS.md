@@ -52,6 +52,17 @@ sandbox provider, session) and the adapter↔sandbox compatibility constraint.
   `lib/hooks.ts`, `lib/client/*.zod.ts`, or `lib/model/*` — regenerate via
   `bun run generate`. They are near-twins; a fix in one likely applies to the
   other.
+- `zero-web` (no scope — not a TS package): a Zero (`zerolang`) web framework
+  under `packages/zero-web/` — `zero.toml` + `src/{web,items,main}.0`. Routing
+  helpers over `std.http` with a `handle()` if/else-chain convention (Zero has
+  no function pointers, so there is no runtime router registry). `std.http.listen`
+  runs a real loopback socket server inside `zero run`; the runtime discovers
+  `handle` by naming convention. **Invoke `zero` by absolute path**
+  (`$HOME/.zero/bin/zero run .`) — a bare `zero` on PATH causes the host hook's
+  re-exec to fail with `BLD002: zero dump failed`. `zero.graph` is the
+  checked-in compile input; rebuild with `zero import .`. Verified against
+  `zero 0.3.4` on darwin arm64; install the compiler via
+  `curl -fsSL https://zerolang.ai/install.sh | bash`.
 
 ### Commands
 

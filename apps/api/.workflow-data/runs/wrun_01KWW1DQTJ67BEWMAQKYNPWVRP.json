@@ -1,0 +1,21 @@
+{
+  "runId": "wrun_01KWW1DQTJ67BEWMAQKYNPWVRP",
+  "deploymentId": "dpl_local@4.2.0",
+  "workflowName": "workflow//./server/workflows/harness/workflow//harnessWorkflow",
+  "specVersion": 3,
+  "executionContext": {
+    "traceCarrier": {},
+    "workflowCoreVersion": "4.5.0",
+    "features": {
+      "encryption": false
+    }
+  },
+  "input": {
+    "__type": "Uint8Array",
+    "data": "ZGV2bFtbMV0seyJzZXNzaW9uSWQiOjIsIm1lc3NhZ2UiOjN9LCJ2ZXJpZnktZml4LXJvdW5kMyIseyJpZCI6NCwicm9sZSI6NSwicGFydHMiOjZ9LCJtc2ctcm91bmQzLXh5eiIsInVzZXIiLFs3XSx7InR5cGUiOjgsInRleHQiOjl9LCJ0ZXh0IiwiU2F5IGhpIGluIGV4YWN0bHkgMyB3b3Jkcy4iXQ=="
+  },
+  "createdAt": "2026-07-06T15:40:50.900Z",
+  "status": "running",
+  "startedAt": "2026-07-06T15:40:50.959Z",
+  "updatedAt": "2026-07-06T15:40:50.959Z"
+}

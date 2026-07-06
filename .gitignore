@@ -17,6 +17,9 @@ coverage/
 # Local exploration / learning clones
 .explore
 
+# Zero compiler artifacts
+.zero/
+
 # Local agent customizations and skills
 .agents
 .claude

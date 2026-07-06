@@ -1,43 +1,32 @@
-import { runAgentTUI } from "@ai-sdk/tui";
-import { HarnessAgent, HarnessAgentSession } from "@ai-sdk/harness/agent";
-import { type AgentTUIAgent } from "@ai-sdk/tui";
-import { agent } from "@workspace/agent/agent";
+import { runAgentTUI } from "@workspace/agent-tui/index";
+import { env } from "@workspace/config/env";
+import type { HarnessMessage } from "@workspace/agent/agent";
+import { createRemoteHarnessAgent } from "./remote-agent";
 
-export function createTUIAgent({
-  agent,
-  session,
-}: {
-  agent: HarnessAgent<any, any, any>;
-  session: HarnessAgentSession;
-}): AgentTUIAgent {
-  return {
-    version: "agent-v1",
-    id: agent.id,
-    tools: agent.tools,
-    generate(request) {
-      return agent.generate({
-        ...request,
-        session,
-      } satisfies Parameters<typeof agent.generate>[0]);
-    },
-    stream(request) {
-      return agent.stream({
-        ...request,
-        session,
-      } satisfies Parameters<typeof agent.stream>[0]);
-    },
-  } satisfies AgentTUIAgent;
+const baseUrl = env.APP_API_URL;
+const resumeChatId = process.argv[2];
+const chatId = resumeChatId ?? crypto.randomUUID();
+
+let initialMessages: HarnessMessage[] = [];
+
+if (resumeChatId) {
+  const res = await fetch(`${baseUrl}/api/chat/${chatId}/messages`);
+  if (res.ok) {
+    initialMessages = (await res.json()) as HarnessMessage[];
+  } else {
+    console.log(`Chat ${chatId} not found — starting fresh under that id.`);
+  }
+} else {
+  console.log(`Starting new chat ${chatId} — resume later with: bun run tui:dev ${chatId}`);
 }
 
-const session = await agent.createSession();
-
-try {
-  await runAgentTUI({
-    title: "Pi",
-    agent: createTUIAgent({ agent, session }),
-    tools: "auto-collapsed",
-    reasoning: "auto-collapsed",
-  });
-} finally {
-  await session.destroy();
-}
+await runAgentTUI({
+  title: "Pi",
+  agent: createRemoteHarnessAgent({
+    baseUrl,
+    chatId,
+  }),
+  initialMessages,
+  tools: "auto-collapsed",
+  reasoning: "auto-collapsed",
+});

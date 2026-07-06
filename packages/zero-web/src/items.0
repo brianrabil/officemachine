@@ -1,0 +1,62 @@
+use web
+
+// Demo resource handlers showing the three core patterns:
+//   - list:   static JSON response
+//   - create: JSON body validation + id extraction + 201
+//   - show:   path segment extraction + lookup + 200 / 404
+//
+// State is in-process only; persistence is not wired because Zero 0.3.4
+// cannot reach a database from the running server (see README "Limits").
+
+pub fn listItems(response: MutSpan<u8>) -> Maybe<Span<u8>> {
+    return ok(response, "[{\"id\":1,\"name\":\"alpha\"},{\"id\":2,\"name\":\"beta\"}]")
+}
+
+pub fn createItem(request: Span<u8>, response: MutSpan<u8>) -> Maybe<Span<u8>> {
+    // Read the raw "id" field span from the JSON body, then parse as i32.
+    let field: Maybe<Span<u8>> = jsonField(request, 256, "id")
+    if !field.has {
+        return badRequest(response, "{\"error\":\"missing or invalid 'id'\"}")
+    }
+    let parsed: Maybe<i32> = std.parse.parseI32(field.value)
+    if !parsed.has {
+        return badRequest(response, "{\"error\":\"id must be a number\"}")
+    }
+    // Respond with the new id: {"id":<n>}.
+    var bodyBuf: [64]u8 = [0_u8; 64]
+    let idText: Maybe<Span<u8>> = std.fmt.i32(bodyBuf, parsed.value)
+    if !idText.has {
+        return serverError(response, "{\"error\":\"response encoding failed\"}")
+    }
+    var out: [64]u8 = [0_u8; 64]
+    var pos: usize = 0
+    pos = writeAll(out, pos, std.mem.span("{\"id\":"))
+    pos = writeAll(out, pos, idText.value)
+    pos = writeAll(out, pos, std.mem.span("}"))
+    return created(response, out[..pos])
+}
+
+pub fn showItem(request: Span<u8>, response: MutSpan<u8>) -> Maybe<Span<u8>> {
+    // Path is /items/:id — segment 0 is "items", segment 1 is the id.
+    let maybeId: Maybe<Span<u8>> = pathSegment(request, 1)
+    if !maybeId.has {
+        return badRequest(response, "{\"error\":\"missing item id\"}")
+    }
+    // Compare against known ids (in-memory lookup).
+    if std.mem.eql(maybeId.value, "1") {
+        return ok(response, "{\"id\":1,\"name\":\"alpha\"}")
+    }
+    if std.mem.eql(maybeId.value, "2") {
+        return ok(response, "{\"id\":2,\"name\":\"beta\"}")
+    }
+    return notFound(response, "{\"error\":\"item not found\"}")
+}
+
+// writeAll writes span s into out at offset, returning the new offset.
+fn writeAll(out: MutSpan<u8>, offset: usize, s: Span<u8>) -> usize {
+    let next: Maybe<usize> = std.io.writeSpan(out, offset, s)
+    if !next.has {
+        return offset
+    }
+    return next.value
+}

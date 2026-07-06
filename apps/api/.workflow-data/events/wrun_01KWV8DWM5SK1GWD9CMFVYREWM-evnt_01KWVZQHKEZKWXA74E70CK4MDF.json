@@ -1,0 +1,11 @@
+{
+  "eventType": "step_started",
+  "specVersion": 3,
+  "correlationId": "step_01KWV8DWMF4NHG6QXSJCNA2HCC",
+  "eventData": {
+    "stepName": "step//./server/workflows/harness/steps/run-slice//runSlice"
+  },
+  "runId": "wrun_01KWV8DWM5SK1GWD9CMFVYREWM",
+  "eventId": "evnt_01KWVZQHKEZKWXA74E70CK4MDF",
+  "createdAt": "2026-07-06T15:11:15.054Z"
+}

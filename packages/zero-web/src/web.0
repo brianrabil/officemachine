@@ -1,0 +1,128 @@
+// web.0 — Zero web framework helpers over std.http.
+//
+// Import with `use web` and call unqualified (Zero `use` brings names into
+// scope, it does not create a namespace prefix):
+//     use web
+//     ...
+//     if isGet(request, "/health") { return ok(response, "{\"ok\":true}") }
+//
+// Zero has no function pointers, so there is no runtime router/registry.
+// The if/else chain in handle() IS the router; these helpers keep it readable.
+
+// Routing predicates.
+pub fn isGet(request: Span<u8>, path: Span<u8>) -> Bool {
+    return std.http.requestIsGet(request, path)
+}
+
+pub fn isPost(request: Span<u8>, path: Span<u8>) -> Bool {
+    return std.http.requestIsPost(request, path)
+}
+
+pub fn isPut(request: Span<u8>, path: Span<u8>) -> Bool {
+    return std.http.requestIsPut(request, path)
+}
+
+pub fn isDelete(request: Span<u8>, path: Span<u8>) -> Bool {
+    return std.http.requestIsDelete(request, path)
+}
+
+pub fn isOptions(request: Span<u8>, path: Span<u8>) -> Bool {
+    return std.http.requestIsOptions(request, path)
+}
+
+// Request data accessors.
+pub fn queryValue(request: Span<u8>, name: Span<u8>) -> Maybe<Span<u8>> {
+    return std.http.requestQueryValue(request, name)
+}
+
+pub fn pathSegment(request: Span<u8>, index: usize) -> Maybe<Span<u8>> {
+    return std.http.requestPathSegment(request, index)
+}
+
+pub fn pathSegmentCount(request: Span<u8>) -> usize {
+    return std.http.requestPathSegmentCount(request)
+}
+
+pub fn header(request: Span<u8>, name: Span<u8>) -> Maybe<Span<u8>> {
+    return std.http.requestHeader(request, name)
+}
+
+pub fn bearerToken(request: Span<u8>) -> Maybe<Span<u8>> {
+    return std.http.requestBearerToken(request)
+}
+
+pub fn cookie(request: Span<u8>, name: Span<u8>) -> Maybe<Span<u8>> {
+    return std.http.requestCookie(request, name)
+}
+
+pub fn jsonBodyWithin(request: Span<u8>, max: usize) -> Maybe<Span<u8>> {
+    return std.http.requestJsonBodyWithin(request, max)
+}
+
+// Standard JSON responses.
+pub fn ok(response: MutSpan<u8>, body: Span<u8>) -> Maybe<Span<u8>> {
+    return std.http.writeJsonOk(response, body)
+}
+
+pub fn created(response: MutSpan<u8>, body: Span<u8>) -> Maybe<Span<u8>> {
+    return std.http.writeJsonCreated(response, body)
+}
+
+pub fn badRequest(response: MutSpan<u8>, body: Span<u8>) -> Maybe<Span<u8>> {
+    return std.http.writeJsonBadRequest(response, body)
+}
+
+pub fn unauthorized(response: MutSpan<u8>, body: Span<u8>) -> Maybe<Span<u8>> {
+    return std.http.writeJsonUnauthorized(response, body)
+}
+
+pub fn forbidden(response: MutSpan<u8>, body: Span<u8>) -> Maybe<Span<u8>> {
+    return std.http.writeJsonForbidden(response, body)
+}
+
+pub fn notFound(response: MutSpan<u8>, body: Span<u8>) -> Maybe<Span<u8>> {
+    return std.http.writeJsonNotFound(response, body)
+}
+
+pub fn conflict(response: MutSpan<u8>, body: Span<u8>) -> Maybe<Span<u8>> {
+    return std.http.writeJsonConflict(response, body)
+}
+
+pub fn methodNotAllowed(response: MutSpan<u8>, body: Span<u8>) -> Maybe<Span<u8>> {
+    return std.http.writeJsonMethodNotAllowed(response, body)
+}
+
+pub fn serverError(response: MutSpan<u8>, body: Span<u8>) -> Maybe<Span<u8>> {
+    return std.http.writeJsonInternalServerError(response, body)
+}
+
+// CORS preflight response.
+pub fn corsPreflight(response: MutSpan<u8>, origin: Span<u8>, methods: Span<u8>, headersList: Span<u8>) -> Maybe<Span<u8>> {
+    return std.http.writeCorsPreflight(response, origin, methods, headersList)
+}
+
+// Auth: combine bearer extraction + comparison into one predicate.
+pub fn authed(request: Span<u8>, expected: Span<u8>) -> Bool {
+    let token: Maybe<Span<u8>> = std.http.requestBearerToken(request)
+    if !token.has {
+        return false
+    }
+    return std.mem.eql(token.value, expected)
+}
+
+// JSON body field lookup over a request body.
+pub fn jsonField(request: Span<u8>, max: usize, name: Span<u8>) -> Maybe<Span<u8>> {
+    let body: Maybe<Span<u8>> = std.http.requestJsonBodyWithin(request, max)
+    if !body.has {
+        return null
+    }
+    return std.json.field(body.value, name)
+}
+
+pub fn jsonFieldU32(request: Span<u8>, max: usize, name: Span<u8>) -> Maybe<u32> {
+    let body: Maybe<Span<u8>> = std.http.requestJsonBodyWithin(request, max)
+    if !body.has {
+        return null
+    }
+    return std.json.u32(body.value, name)
+}
