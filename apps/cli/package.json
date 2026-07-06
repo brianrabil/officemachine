@@ -1,10 +1,10 @@
 {
-  "name": "@workspace/tui",
+  "name": "@workspace/cli",
   "private": true,
   "main": "src/main.ts",
   "type": "module",
   "scripts": {
-    "tui:dev": "NODE_EXTRA_CA_CERTS=$HOME/.portless/ca.pem bun run ./src/main.ts"
+    "cli:dev": "NODE_EXTRA_CA_CERTS=$HOME/.portless/ca.pem tsx ./src/main.ts"
   },
   "dependencies": {
     "@workspace/agent": "workspace:*",
@@ -13,7 +13,7 @@
     "ai": "^7.0.15"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "tsx": "^4.19.4"
   },
   "peerDependencies": {
     "typescript": "^6"

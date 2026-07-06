@@ -8,7 +8,6 @@
     "ai": "^7.0.15"
   },
   "devDependencies": {
-    "@types/bun": "latest",
     "@types/node": "latest"
   },
   "peerDependencies": {

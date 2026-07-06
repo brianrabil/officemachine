@@ -1,9 +1,6 @@
 {
   "name": "@workspace/config",
   "type": "module",
-  "devDependencies": {
-    "@types/bun": "latest"
-  },
   "peerDependencies": {
     "typescript": "^5"
   },

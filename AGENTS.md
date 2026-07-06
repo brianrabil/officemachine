@@ -1,6 +1,6 @@
 ## Repository
 
-Bun + Turborepo monorepo (root `package.json` `packageManager: bun@1.3.14`).
+pnpm + Turborepo monorepo (root `package.json` `packageManager: pnpm@11.10.0`).
 Workspace is `@workspace/*` internal packages plus several apps. Source for the
 agent runtime is AI SDK 7 harness (`@ai-sdk/harness` + Pi adapter +
 `just-bash` sandbox). Read `docs/building-an-agent-harness.md` before touching the
@@ -17,8 +17,8 @@ sandbox provider, session) and the adapter↔sandbox compatibility constraint.
   (no `src/`). `start` uses port **3001**, not 3000.
 - `site`: marketing Next.js app (no scope). App Router under `app/`. Note
   `lucide-react` is `^1.23.0` (old major) alongside Next 16 / React 19.
-- `tui` (`@workspace/tui`): thin Bun wrapper around `@ai-sdk/tui`, importing
-  `agent` from `@workspace/agent/agent`. Only script is `tui:dev`.
+- `cli` (`@workspace/cli`): thin wrapper around `@ai-sdk/tui`, importing
+  `agent` from `@workspace/agent/agent`. Only script is `cli:dev`.
 - `terminal`: a `zero-native` Zig desktop shell (`app.zon`, manifest
   `dev.zero_native.terminal`) wrapping the nested Next.js static-export in
   `apps/terminal/frontend` (output `frontend/out`). Root has **no package.json** —
@@ -50,7 +50,7 @@ sandbox provider, session) and the adapter↔sandbox compatibility constraint.
   `skills-sdk` (`@workspace/skills-sdk`): **orval-generated** REST SDKs (fetch +
   Zod + SWR) from `openapi/*.yaml`. Never hand-edit `lib/client.ts`,
   `lib/hooks.ts`, `lib/client/*.zod.ts`, or `lib/model/*` — regenerate via
-  `bun run generate`. They are near-twins; a fix in one likely applies to the
+  `pnpm run generate`. They are near-twins; a fix in one likely applies to the
   other.
 - `zero-web` (no scope — not a TS package): a Zero (`zerolang`) web framework
   under `packages/zero-web/` — `zero.toml` + `src/{web,items,main}.0`. Routing
@@ -66,14 +66,14 @@ sandbox provider, session) and the adapter↔sandbox compatibility constraint.
 
 ### Commands
 
-Root scripts delegate to Turbo: `bun run dev`, `bun run build`. Lint/format use
-oxc: `bun run lint` / `bun run lint:fix` (oxlint), `bun run fmt` /
-`bun run fmt:check` (oxfmt). Turbo also defines `//#quality` (= lint + format).
+Root scripts delegate to Turbo: `pnpm run dev`, `pnpm run build`. Lint/format use
+oxc: `pnpm run lint` / `pnpm run lint:fix` (oxlint), `pnpm run fmt` /
+`pnpm run fmt:check` (oxfmt). Turbo also defines `//#quality` (= lint + format).
 
 Per-app/package scripts: prefer the package script. The npm `dev` script in
 `api`, `site`, `web` runs **portless** (which then launches the real server via
 that package's `dev:app`); use `dev:app` to skip portless and hit Next/Nitro
-directly. `terminal` and `tui` have no portless layer.
+directly. `terminal` and `cli` have no portless layer.
 
 `typecheck` is defined only on `site`, `ui`, `ai-gateway-sdk`, `skills-sdk`
 (all `tsc --noEmit`). Other apps/packages have none — run `tsc --noEmit` in the

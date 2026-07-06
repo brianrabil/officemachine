@@ -1,11 +1,6 @@
 {
   "name": "agent-harness-workspace",
   "private": true,
-  "workspaces": [
-    "apps/*",
-    "apps/terminal/frontend",
-    "packages/*"
-  ],
   "type": "module",
   "scripts": {
     "dev": "turbo run dev",
@@ -24,5 +19,5 @@
   "overrides": {
     "just-bash": "^3.0.2"
   },
-  "packageManager": "bun@1.3.14"
+  "packageManager": "pnpm@11.10.0"
 }

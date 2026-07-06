@@ -17,7 +17,7 @@ if (resumeChatId) {
     console.log(`Chat ${chatId} not found — starting fresh under that id.`);
   }
 } else {
-  console.log(`Starting new chat ${chatId} — resume later with: bun run tui:dev ${chatId}`);
+  console.log(`Starting new chat ${chatId} — resume later with: pnpm run cli:dev ${chatId}`);
 }
 
 await runAgentTUI({

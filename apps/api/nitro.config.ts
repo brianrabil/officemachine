@@ -22,7 +22,7 @@ export default defineConfig({
   },
   database: {
     default: {
-      connector: "bun-sqlite",
+      connector: "node-sqlite",
       options: { name: "db" },
     },
   },

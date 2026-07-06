@@ -1,15 +1,9 @@
 # @workspace/config
 
-To install dependencies:
+To install dependencies (from the repo root):
 
 ```bash
-bun install
+pnpm install
 ```
 
-To run:
-
-```bash
-bun run index.ts
-```
-
-This project was created using `bun init` in bun v1.3.14. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
+Consumed via subpath exports (`./settings`, `./env`) — see `package.json`.

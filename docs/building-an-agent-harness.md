@@ -55,7 +55,7 @@ packages/agent   ← the harness core (everything below builds on this)
   lib/chat-id.ts          mint chat ids
 
 apps/api    Nitro server: POST /api/chat (stream + resume), /api/start-workflow (durable)
-apps/tui    terminal UI via @ai-sdk/tui runAgentTUI
+apps/cli    terminal UI via @ai-sdk/tui runAgentTUI
 apps/web    Next.js chat via useChat + DefaultChatTransport
 packages/storage Drizzle + libsql + unstorage
 packages/ui shadcn component library
@@ -130,7 +130,7 @@ transcript.** Get this wrong and you either double-feed history or lose it.
 Create before running; end explicitly:
 
 - `session.destroy()` — stops the runtime, discards resumability. Use for one-off
-  scripts and tests (see `apps/tui/src/main.ts`'s `finally`).
+  scripts and tests (see `apps/cli/src/main.ts`'s `finally`).
 - `session.detach()` — parks runtime + sandbox, returns resume state, keeps the
   sandbox warm. Use for HTTP routes needing multi-turn continuity.
 - `session.stop()` — saves resume state, then stops runtime + sandbox.
@@ -274,7 +274,7 @@ persistence idea is identical, only the substrate (Workflow steps) differs.
 
 ## 9. Frontends over the same core
 
-**Terminal (`apps/tui`)** — wrap the shared `agent` in the `AgentTUIAgent` shape and
+**Terminal (`apps/cli`)** — wrap the shared `agent` in the `AgentTUIAgent` shape and
 hand it to `runAgentTUI`. One session per process, `destroy()` in `finally`:
 
 ```ts
@@ -369,4 +369,4 @@ boundaries.
 - [AI SDK Harnesses — Workflow Utilities](https://ai-sdk.dev/docs/ai-sdk-harnesses/workflow-utilities)
 - [AI SDK Harnesses — UI](https://ai-sdk.dev/docs/ai-sdk-harnesses/ui) · [Terminal UI](https://ai-sdk.dev/docs/ai-sdk-harnesses/terminal-ui)
 - [Vercel changelog — Program agent harnesses with AI SDK](https://vercel.com/changelog/program-agent-harnesses-with-ai-sdk)
-- Repo files: `packages/agent/lib/*`, `apps/api/server/api/chat.post.ts`, `apps/api/workflows/harness-workflow/*`, `apps/tui/src/main.ts`, `apps/web/components/chat.tsx`, `AGENTS.md`
+- Repo files: `packages/agent/lib/*`, `apps/api/server/api/chat.post.ts`, `apps/api/workflows/harness-workflow/*`, `apps/cli/src/main.ts`, `apps/web/components/chat.tsx`, `AGENTS.md`
