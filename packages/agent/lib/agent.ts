@@ -4,7 +4,7 @@ import type { InferUITools, UIMessage } from "ai";
 import { env } from "@workspace/config/env";
 import { settings } from "@workspace/config/settings";
 import { z } from "zod";
-import { createJustBashSandbox } from "@ai-sdk/sandbox-just-bash";
+import { createJustBashSandbox } from "@workspace/sandbox-just-bash/index";
 import { InMemoryFs, MountableFs, ReadWriteFs } from "just-bash";
 import type { HarnessV1SandboxProvider } from "@ai-sdk/harness";
 import path from "node:path";
@@ -31,17 +31,14 @@ export const drive = new MountableFs({
   ],
 });
 
-export const sandbox: HarnessV1SandboxProvider = {
-  ...createJustBashSandbox({
-    cwd: "/workspace",
-    fs: drive,
-    defenseInDepth: false,
-    network: {
-      dangerouslyAllowFullInternetAccess: true,
-    },
-  }),
-  resumeSession: (o) => sandbox.createSession(o),
-};
+export const sandbox: HarnessV1SandboxProvider = createJustBashSandbox({
+  cwd: "/workspace",
+  fs: drive,
+  defenseInDepth: false,
+  network: {
+    dangerouslyAllowFullInternetAccess: true,
+  },
+});
 
 export const agent = new HarnessAgent({
   id: "zero-harness",

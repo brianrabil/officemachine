@@ -14,6 +14,9 @@ coverage/
 *.db-journal
 
 
+# Local exploration / learning clones
+.explore
+
 # Local agent customizations and skills
 .agents
 .claude
