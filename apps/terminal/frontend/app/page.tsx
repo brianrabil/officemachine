@@ -44,7 +44,7 @@ const INITIAL_FILES: Record<string, string> = {
 };
 
 export default function Home() {
-  const { ref, write } = useTerminal();
+  const { ref, write, focus } = useTerminal();
   const [themeLabel, setThemeLabel] = useState("Default");
   const [title, setTitle] = useState("wterm");
   const [ready, setReady] = useState(false);
@@ -108,7 +108,10 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="flex flex-1 items-center justify-center overflow-hidden p-6">
+      <main
+        className="flex flex-1 items-center justify-center overflow-hidden p-6"
+        onClick={focus}
+      >
         <div className="flex w-full max-w-[900px] flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm">
           <div className="flex items-center gap-1.5 border-b border-border px-4 py-2.5">
             <span className="size-2.5 rounded-full bg-muted-foreground/30" />
