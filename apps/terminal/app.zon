@@ -3,16 +3,16 @@
     .name = "terminal",
     .display_name = "Terminal",
     .version = "0.1.0",
-    .icons = .{ "assets/icon.icns" },
+    .icons = .{"assets/icon.icns"},
     .platforms = .{ "macos", "linux" },
     .permissions = .{},
-    .capabilities = .{ "webview" },
+    .capabilities = .{"webview"},
     .frontend = .{
         .dist = "frontend/out",
         .entry = "index.html",
         .spa_fallback = true,
         .dev = .{
-            .url = "https://terminal.localhost/",
+            .url = "http://127.0.0.1:3000/",
             .command = .{ "npm", "--prefix", "frontend", "run", "dev" },
             .ready_path = "/",
             .timeout_ms = 30000,
@@ -20,13 +20,13 @@
     },
     .security = .{
         .navigation = .{
-            .allowed_origins = .{ "zero://app", "zero://inline", "https://terminal.localhost" },
+            .allowed_origins = .{ "zero://app", "zero://inline", "http://127.0.0.1:3000" },
             .external_links = .{ .action = "deny" },
         },
     },
     .web_engine = "system",
     .cef = .{ .dir = "third_party/cef/macos", .auto_install = false },
     .windows = .{
-        .{ .label = "main", .title = "Terminal", .width = 720, .height = 480, .restore_state = true },
+        .{ .label = "main", .title = "Next Example", .width = 720, .height = 480, .restore_state = true },
     },
 }
