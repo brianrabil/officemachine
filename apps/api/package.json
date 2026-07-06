@@ -8,10 +8,7 @@
     "build": "nitro build",
     "dev": "portless",
     "dev:app": "nitro dev",
-    "preview": "nitro preview",
-    "workflow:devtools": "bunx workflow web --backend @workflow-worlds/turso",
-    "db:generate": "drizzle-kit generate",
-    "db:studio": "drizzle-kit studio"
+    "preview": "nitro preview"
   },
   "dependencies": {
     "@ai-sdk/gateway": "^4.0.12",
@@ -21,17 +18,12 @@
     "@ai-sdk/sandbox-just-bash": "^1.0.18",
     "@ai-sdk/sandbox-vercel": "^1.0.18",
     "@ai-sdk/workflow-harness": "^1.0.18",
-    "@sqliteai/sqlite-sync": "^1.0.20",
     "@workflow-worlds/turso": "^0.2.2",
     "@workspace/agent": "workspace:*",
     "@workspace/config": "workspace:*",
-    "@workspace/skills-sdk": "workspace:*",
     "ai": "^7.0.15",
     "ai-sdk-ollama": "^4.0.0",
-    "@vercel/oidc": "^3.8.0",
-    "db0": "^0.3.4",
-    "drizzle-orm": "^0.45.2",
-    "h3": "2.0.1-rc.22",
+    "files-sdk": "^2.1.0",
     "workflow": "^4.5.0",
     "zod": "^4.4.3",
     "zod-config": "^1.4.0"
@@ -39,7 +31,6 @@
   "devDependencies": {
     "@types/bun": "latest",
     "@types/node": "latest",
-    "drizzle-kit": "^0.31.10",
     "nitro": "latest",
     "typescript": "latest"
   },

@@ -87,6 +87,7 @@ pub fn build(b: *std.Build) void {
     const app_mod = localModule(b, target, optimize, "src/main.zig");
     app_mod.addImport("zero-native", zero_native_mod);
     app_mod.addImport("runner", runner_mod);
+    app_mod.addImport("build_options", options_mod);
     const exe = b.addExecutable(.{
         .name = app_exe_name,
         .root_module = app_mod,
@@ -94,7 +95,12 @@ pub fn build(b: *std.Build) void {
     linkPlatform(b, target, app_mod, exe, selected_platform, web_engine, zero_native_path, cef_dir, cef_auto_install);
     b.installArtifact(exe);
 
-    const frontend_install = b.addSystemCommand(&.{ "npm", "install", "--prefix", "frontend" });
+    // --workspaces=false: this repo's root package.json declares bun workspaces
+    // ("apps/*"), so npm auto-detects it as an npm workspace root and tries to
+    // resolve every sibling app's "workspace:*" deps (which only bun/pnpm
+    // understand), failing with EUNSUPPORTEDPROTOCOL. This isolates the
+    // frontend as its own standalone npm install.
+    const frontend_install = b.addSystemCommand(&.{ "npm", "install", "--prefix", "frontend", "--workspaces=false" });
     const frontend_install_step = b.step("frontend-install", "Install frontend dependencies");
     frontend_install_step.dependOn(&frontend_install.step);
 
@@ -279,6 +285,7 @@ fn linkPlatform(b: *std.Build, target: std.Build.ResolvedTarget, app_mod: *std.B
             },
         }
         app_mod.linkSystemLibrary("c", .{});
+        app_mod.linkSystemLibrary("util", .{}); // forkpty
         if (web_engine == .chromium) app_mod.linkSystemLibrary("stdc++", .{});
     } else if (platform == .windows) {
         switch (web_engine) {

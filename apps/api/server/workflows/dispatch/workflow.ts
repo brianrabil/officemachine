@@ -13,9 +13,14 @@ export async function dispatchWorkflow(
 ) {
   "use workflow";
 
-  await persistMessage({ chatId: input.sessionId, message: input.userMessage });
+  // 1. Perist Message
+  await persistMessage({
+    chatId: input.sessionId,
+    message: input.userMessage,
+  });
 
   const resumeFrom = await loadResumeStep(input.sessionId);
+
   let state = createHarnessWorkflowState({
     prompt: input.prompt,
     sessionId: input.sessionId,

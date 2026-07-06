@@ -7,9 +7,12 @@ export async function loadResumeStep(
 ): Promise<HarnessV1ResumeSessionState | undefined> {
   "use step";
 
-  const { getItem } = await import("@workspace/config/files");
+  const { useStorage } = await import("nitro/storage");
 
-  return getItem<HarnessV1ResumeSessionState>(sessionKey(sessionId));
+  const state = await useStorage("default").getItem<HarnessV1ResumeSessionState>(
+    sessionKey(sessionId),
+  );
+  return state ?? undefined;
 }
 
 export async function persistResumeStep({
@@ -23,7 +26,7 @@ export async function persistResumeStep({
 
   if (!resumeState) return;
 
-  const { setItem } = await import("@workspace/config/files");
+  const { useStorage } = await import("nitro/storage");
 
-  await setItem(sessionKey(sessionId), resumeState);
+  await useStorage("default").setItem(sessionKey(sessionId), resumeState);
 }

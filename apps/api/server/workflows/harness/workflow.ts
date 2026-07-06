@@ -1,7 +1,7 @@
 import { harnessMessageHook, harnessHookToken } from "./hooks/harness-message";
 import { extractPrompt } from "./steps/extract-prompt";
-import { runSlice } from "../dispatch/steps/run-slice";
-import { persistMessage } from "../dispatch/steps/persist-message";
+import { runSlice } from "./steps/run-slice";
+import { persistMessage } from "./steps/persist-message";
 import { createHarnessWorkflowState } from "@ai-sdk/workflow-harness";
 import type { HarnessV1ResumeSessionState } from "@ai-sdk/harness";
 import type { HarnessMessage } from "@workspace/agent/agent";
@@ -9,7 +9,9 @@ import type { HarnessMessage } from "@workspace/agent/agent";
 export async function harnessWorkflow(input: { sessionId: string; message: HarnessMessage }) {
   "use workflow";
 
-  using hook = harnessMessageHook.create({ token: harnessHookToken(input.sessionId) });
+  using hook = harnessMessageHook.create({
+    token: harnessHookToken(input.sessionId),
+  });
 
   let nextMessage: HarnessMessage | undefined = input.message;
   let resumeFrom: HarnessV1ResumeSessionState | undefined;
@@ -20,11 +22,7 @@ export async function harnessWorkflow(input: { sessionId: string; message: Harne
     const prompt = await extractPrompt(nextMessage);
     if (!prompt) break;
 
-    let state = createHarnessWorkflowState({
-      prompt,
-      sessionId: input.sessionId,
-      resumeFrom,
-    });
+    let state = createHarnessWorkflowState({ prompt, sessionId: input.sessionId, resumeFrom });
 
     while (state.status === "running" || state.status === "timed_out") {
       state = await runSlice(state);

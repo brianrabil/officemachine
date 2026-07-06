@@ -10,8 +10,8 @@ const App = struct {
     fn app(self: *@This()) zero_native.App {
         return .{
             .context = self,
-            .name ="terminal",
-            .source = zero_native.frontend.productionSource(.{ .dist ="frontend/out" }),
+            .name = "terminal",
+            .source = zero_native.frontend.productionSource(.{ .dist = "frontend/out" }),
             .source_fn = source,
         };
     }
@@ -19,27 +19,22 @@ const App = struct {
     fn source(context: *anyopaque) anyerror!zero_native.WebViewSource {
         const self: *@This() = @ptrCast(@alignCast(context));
         return zero_native.frontend.sourceFromEnv(self.env_map, .{
-            .dist ="frontend/out",
+            .dist = "frontend/out",
             .entry = "index.html",
         });
     }
 };
 
-const dev_origins = [_][]const u8{ "zero://app", "zero://inline", "http://127.0.0.1:3000" };
-
 pub fn main(init: std.process.Init) !void {
     var app = App{ .env_map = init.environ_map };
     try runner.runWithOptions(app.app(), .{
-        .app_name ="Terminal",
-        .window_title ="Terminal",
-        .bundle_id ="dev.zero_native.terminal",
+        .app_name = "Terminal",
+        .window_title = "Terminal",
+        .bundle_id = "dev.zero_native.terminal",
         .icon_path = "assets/icon.icns",
-        .security = .{
-            .navigation = .{ .allowed_origins = &dev_origins },
-        },
     }, init);
 }
 
 test "app name is configured" {
-    try std.testing.expectEqualStrings("terminal","terminal");
+    try std.testing.expectEqualStrings("terminal", "terminal");
 }

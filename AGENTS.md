@@ -1,3 +1,118 @@
+## Repository
+
+Bun + Turborepo monorepo (root `package.json` `packageManager: bun@1.3.14`).
+Workspace is `@workspace/*` internal packages plus several apps. Source for the
+agent runtime is AI SDK 7 harness (`@ai-sdk/harness` + Pi adapter +
+`just-bash` sandbox). Read `docs/building-an-agent-harness.md` before touching the
+harness architecture — it explains the four pieces (`HarnessAgent`, adapter,
+sandbox provider, session) and the adapter↔sandbox compatibility constraint.
+
+### Apps (`apps/*`)
+
+- `api` (`@workspace/api`): Nitro + h3 server. **No `src/`** — Nitro auto-routes
+  `server/api`, `server/database`, `server/utils`, `server/workflows`. Config at
+  root: `nitro.config.ts`, `drizzle.config.ts` (Drizzle/sqlite via `db0`). `h3`
+  is pinned to an RC (`2.0.1-rc.22`); verify before bumping.
+- `web` (`@workspace/web`): main Next.js chat app. App Router under `app/`
+  (no `src/`). `start` uses port **3001**, not 3000.
+- `site`: marketing Next.js app (no scope). App Router under `app/`. Note
+  `lucide-react` is `^1.23.0` (old major) alongside Next 16 / React 19.
+- `tui` (`@workspace/tui`): thin Bun wrapper around `@ai-sdk/tui`, importing
+  `agent` from `@workspace/agent/agent`. Only script is `tui:dev`.
+- `terminal`: a `zero-native` Zig desktop shell (`app.zon`, manifest
+  `dev.zero_native.terminal`) wrapping the nested Next.js static-export in
+  `apps/terminal/frontend` (output `frontend/out`). Root has **no package.json** —
+  it's a Zig project (`zig build dev|run|test|package`). `src/pty.zig` forks
+  `$SHELL` via libc `forkpty`; reads are polled on the main thread because
+  zero-native bridge calls must run there. See `apps/terminal/README.md` for
+  `-Dweb-engine=chromium`, `-Dzero-native-path`, and `ZERO_NATIVE_LOG_*` env.
+
+### Packages (`packages/*`)
+
+- `agent` (`@workspace/agent`): core `HarnessAgent` over Pi (`@ai-sdk/harness-pi`)
+  inside a durable `just-bash` sandbox with a `MountableFs` (in-memory base,
+  workspace mounted at `/workspace`, sessions at `/.pi-sessions` redirected to
+  `APP_CONFIG_DIR/sessions`). Hard-codes
+  `dangerouslyAllowFullInternetAccess: true`, `defenseInDepth: false`. Source in
+  `lib/`; exports map `"./*": "./lib/*.ts"`. `registry.ts` filters builtin
+  providers to only `opencode-go` and `vercel-ai-gateway`.
+- `config` (`@workspace/config`): `.env` loader (`@dotenvx/dotenvx` →
+  `zod-config`) and JSON5 settings from
+  `$APP_CONFIG_DIR/settings.json5`. **Explicit** exports map (subpaths only:
+  `./settings`, `./env`, `./files`) — bare `@workspace/config` import will fail.
+  Source in `lib/`.
+- `ui` (`@workspace/ui`): shared React 19 + shadcn design system. Source in
+  **`src/`** (not `lib/`). Imports resolve subpaths: `@workspace/ui/components/*`
+  (`.tsx`), `/lib/*`, `/hooks/*`, `/globals.css`, `/postcss.config`.
+  `components.json` uses style `base-rhea`, baseColor `neutral`,
+  iconLibrary `hugeicons`. Compose `@shadcn/react` and `@base-ui/react` directly.
+- `ai-gateway-sdk` (`@workspace/ai-gateway-sdk`) and
+  `skills-sdk` (`@workspace/skills-sdk`): **orval-generated** REST SDKs (fetch +
+  Zod + SWR) from `openapi/*.yaml`. Never hand-edit `lib/client.ts`,
+  `lib/hooks.ts`, `lib/client/*.zod.ts`, or `lib/model/*` — regenerate via
+  `bun run generate`. They are near-twins; a fix in one likely applies to the
+  other.
+
+### Commands
+
+Root scripts delegate to Turbo: `bun run dev`, `bun run build`. Lint/format use
+oxc: `bun run lint` / `bun run lint:fix` (oxlint), `bun run fmt` /
+`bun run fmt:check` (oxfmt). Turbo also defines `//#quality` (= lint + format).
+
+Per-app/package scripts: prefer the package script. The npm `dev` script in
+`api`, `site`, `web` runs **portless** (which then launches the real server via
+that package's `dev:app`); use `dev:app` to skip portless and hit Next/Nitro
+directly. `terminal` and `tui` have no portless layer.
+
+`typecheck` is defined only on `site`, `ui`, `ai-gateway-sdk`, `skills-sdk`
+(all `tsc --noEmit`). Other apps/packages have none — run `tsc --noEmit` in the
+package dir if you need it. No package defines a `test` script.
+
+### Conventions and gotchas
+
+- **Two source conventions**: `agent`, `ai-gateway-sdk`, `config`, `skills-sdk`
+  put source in `lib/`; `ui` puts it in `src/`. Exports maps reflect this.
+- **No build step for packages** despite Turbo's `build` task + `dist/**`
+  outputs — packages are consumed as raw `.ts`/`.tsx` via `moduleResolution:
+  bundler` + `allowImportingTsExtensions`. TS configs use
+  `verbatimModuleSyntax` and `noEmit`.
+- `@workspace/config` is a runtime dependency of `@workspace/agent`; if its env
+  load fails, the agent cannot boot. Both ship a committed `.env`.
+- Root `package.json` `overrides` pins `just-bash@^3.0.2`; the
+  `InMemoryFs`/`MountableFs`/`ReadWriteFs` types in `agent` come from there.
+- `apps/api` recently deleted `server/api/providers/[id].get.ts` and
+  `server/api/providers/index.get.ts` (uncommitted) — don't recreate them.
+- Harness packages (`@ai-sdk/harness*`, `@ai-sdk/sandbox-*`) are experimental;
+  verify against current docs before upgrading.
+
+### `apps/terminal` (wterm + zero-native desktop app)
+
+A zero-native WebView shell (Zig) hosting a Next.js static export that runs the
+wterm terminal emulator with `@wterm/just-bash` — an in-browser bash shell. **No
+native PTY, no JS bridge, no backend.** Shell execution, file IO, and command
+history all run client-side via WASM + just-bash.
+
+- **Frontend**: `apps/terminal/frontend` (Next.js `output: "export"`, output
+  `frontend/out`). Build with `bun` (the repo root uses `workspace:*` which
+  `npm` rejects). The `zig build run` task does shell out to
+  `npm install --workspaces=false` then `npm run build` — that works too.
+- **Deps**: `@wterm/{core,dom,react,just-bash}@^0.3.0` and `just-bash@^2.14.2`.
+  Pin `just-bash` to `^2.14.2` explicitly — npm `latest` is `3.x`, which does
+  **not** satisfy `@wterm/just-bash`'s `peerDependencies: { "just-bash": "^2" }`.
+- **`transpilePackages`** in `next.config.ts` is required — the `@wterm/*`
+  packages ship untranspiled ESM that Turbopack must process.
+- **The `wterm.wasm` binary must ship.** `frontend/package.json`'s `predev`/
+  `prebuild` copy `node_modules/@wterm/core/wasm/wterm.wasm` → `public/wterm.wasm`.
+  If those scripts vanish (installers sometimes strip them), the terminal renders
+  blank with no diagnostic. After any dep change, verify `out/wterm.wasm` exists.
+- **Zig shell**: `src/main.zig` is a minimal `App` with `source_fn` only — no
+  `start_fn`, no `bridge()`. `src/runner.zig` is the generated runtime wiring
+  (do not hand-edit). `app.zon` declares only `webview` capability (no `js_bridge`).
+- **Pattern** (`frontend/app/page.tsx`): `useTerminal()` → `{ ref, write }`;
+  construct `new BashShell({ files, greeting })` in `onReady`; call
+  `shell.attach(write)`; route `onData` to `shell.handleInput(data)`.
+- To launch: `cd apps/terminal/frontend && bun install && bun run build && cd .. && zig build && ./zig-out/bin/terminal`.
+
 ## Global Coding Rules
 
 - Do the requested engineering work directly. Do not turn tasks into process,
@@ -39,6 +154,12 @@
   boundary with Zod.
 - No hacks or tech debt. If the correct implementation cannot be done, say so
   instead of adding a quick fix.
+- No slop. Do not declare work done on the strength of logs, process exits, or
+  "looks like it dispatched." Verify the actual user-facing behavior before
+  claiming success — if a UI renders, see the render; if a terminal echoes, type
+  into it and read the echo back. Never claim "works" from a trace alone. If you
+  cannot verify the real outcome (e.g. no GUI in this environment), say that
+  explicitly and ask the user to confirm, rather than assuring them it works.
 - Do not mutate tool objects returned by libraries to attach behavior. If the
   docs do not show behavior through the construction API, do not bolt it on
   after the fact.

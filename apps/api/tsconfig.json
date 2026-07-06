@@ -4,5 +4,6 @@
     "paths": {
       "~/*": ["./*"]
     }
-  }
+  },
+  "include": [".nitro/types/nitro-imports.d.ts", "**/*.ts"]
 }

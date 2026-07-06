@@ -8,4 +8,5 @@ export default definePlugin(async () => {
   mkdirSync(path.join(env.APP_CONFIG_DIR, "commands"), { recursive: true });
   mkdirSync(path.join(env.APP_CONFIG_DIR, "sessions"), { recursive: true });
   mkdirSync(path.join(env.APP_CONFIG_DIR, "extensions"), { recursive: true });
+  mkdirSync(path.join(env.APP_CONFIG_DIR, "files"), { recursive: true });
 });
