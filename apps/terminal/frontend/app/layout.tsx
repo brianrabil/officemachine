@@ -24,9 +24,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="h-screen antialiased">
         <header className="flex items-center justify-between gap-4 border-b border-border px-4 py-3">
           <div className="flex items-center gap-2.5">
-            <div className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <SquareTerminalIcon className="size-4" />
-            </div>
             <span className="text-sm font-medium text-foreground">OfficeMachine Terminal</span>
           </div>
           <div className="card">
@@ -34,8 +31,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <strong>{bridge}</strong>
           </div>
         </header>
-        {children}
+        <div className="flex size-full flex-col">
+          <main className="flex flex-1 overflow-hidden">{children}</main>
+        </div>
       </body>
+      <footer className="flex items-center justify-between gap-4 border-t border-border px-4 py-2 font-mono text-xs text-muted-foreground">
+        <div className="flex items-center gap-3">
+          <span>WTERM · Ghostty</span>
+        </div>
+      </footer>
     </html>
   );
 }

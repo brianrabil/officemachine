@@ -57,27 +57,18 @@ export default function Home() {
   if (!core) return null;
 
   return (
-    <div className="flex size-full flex-col">
-      <main className="flex flex-1 overflow-hidden">
-        <Terminal
-          ref={ref}
-          cols={80}
-          rows={24}
-          autoResize
-          debug={debugEnabled}
-          core={core}
-          onReady={handleReady}
-          onData={handleData}
-          onResize={handleResize}
-          className="flex-1"
-          style={{ borderRadius: 0, boxShadow: "none", padding: 0 }}
-        />
-      </main>
-      <footer className="flex items-center justify-between gap-4 border-t border-border px-4 py-2 font-mono text-xs text-muted-foreground">
-        <div className="flex items-center gap-3">
-          <span>WTERM · Ghostty</span>
-        </div>
-      </footer>
-    </div>
+    <Terminal
+      ref={ref}
+      cols={80}
+      rows={24}
+      autoResize
+      debug={debugEnabled}
+      core={core}
+      onReady={handleReady}
+      onData={handleData}
+      onResize={handleResize}
+      className="flex-1"
+      style={{ borderRadius: 0, boxShadow: "none", padding: 0 }}
+    />
   );
 }
