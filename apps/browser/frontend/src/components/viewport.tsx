@@ -550,7 +550,7 @@ export function Viewport() {
           <canvas
             ref={canvasRef}
             tabIndex={0}
-            className="max-h-full max-w-full object-contain outline-none"
+            className="h-full w-full min-h-0 min-w-0 object-contain outline-none"
             onMouseMove={(e) => handleMouseEvent(e, "mouseMoved")}
             onMouseDown={(e) => {
               canvasRef.current?.focus();

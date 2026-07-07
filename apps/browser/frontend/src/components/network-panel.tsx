@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Circle, Loader2, RefreshCw, Square, Trash2 } from "lucide-react";
-import { useHotkey } from "@tanstack/react-hotkeys";
 
 interface NetworkRequest {
   url: string;
@@ -189,8 +188,6 @@ export function NetworkPanel() {
     setHarRecording(false);
   }, [sessionName, harPath]);
 
-  useHotkey("Enter", () => handleHarStop(), { target: harInputRef, ignoreInputs: false });
-
   return (
     <div className="flex h-full flex-col">
       <div className="flex shrink-0 items-center gap-1.5 px-3 py-2">
@@ -330,6 +327,12 @@ export function NetworkPanel() {
             type="text"
             value={harPath}
             onChange={(e) => setHarPath(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleHarStop();
+              }
+            }}
             placeholder="capture.har"
             className="h-9 w-full rounded-md border border-input bg-transparent px-3 font-mono text-sm outline-none focus:ring-1 focus:ring-ring"
           />

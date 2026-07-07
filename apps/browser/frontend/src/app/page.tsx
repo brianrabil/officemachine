@@ -1,15 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai/react";
 import { activePortAtom, sessionsAtom, newSessionDialogAtom } from "@/store/sessions";
 import { useSessionsSync } from "@/store/sessions";
 import { useStreamSync, hasConsoleErrorsAtom } from "@/store/stream";
 import { useActivitySync } from "@/store/activity";
 import { activeExtensionsAtom } from "@/store/sessions";
-import { useChatStatusSync, modelSelectorOpenAtom } from "@/store/chat";
+import { useChatStatusSync } from "@/store/chat";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { useHotkey, useHotkeys } from "@tanstack/react-hotkeys";
 import { Viewport } from "@/components/viewport";
 import { ActivityFeed } from "@/components/activity-feed";
 import { ChatPanel } from "@/components/chat-panel";
@@ -24,8 +22,6 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { ExtensionInfo } from "@/types";
 
-const SIDE_PANEL_TABS = ["chat", "activity", "console", "network", "storage", "extensions"] as const;
-
 const SidePanel = ({
   activeExtensions,
   hasConsoleErrors,
@@ -33,29 +29,8 @@ const SidePanel = ({
   hasConsoleErrors: boolean;
   activeExtensions: ExtensionInfo[];
 }) => {
-  const [tab, setTab] = useState<(typeof SIDE_PANEL_TABS)[number]>("chat");
-  const setModelSelectorOpen = useSetAtom(modelSelectorOpenAtom);
-
-  useHotkeys([
-    { hotkey: "Mod+1", callback: () => setTab("chat"), options: { meta: { name: "Switch to chat", description: "Show the chat panel" } } },
-    { hotkey: "Mod+2", callback: () => setTab("activity"), options: { meta: { name: "Switch to activity", description: "Show the activity panel" } } },
-    { hotkey: "Mod+3", callback: () => setTab("console"), options: { meta: { name: "Switch to console", description: "Show the console panel" } } },
-    { hotkey: "Mod+4", callback: () => setTab("network"), options: { meta: { name: "Switch to network", description: "Show the network panel" } } },
-    { hotkey: "Mod+5", callback: () => setTab("storage"), options: { meta: { name: "Switch to storage", description: "Show the storage panel" } } },
-    { hotkey: "Mod+6", callback: () => setTab("extensions"), options: { meta: { name: "Switch to extensions", description: "Show the extensions panel" } } },
-  ]);
-
-  useHotkey(
-    "Mod+K",
-    () => {
-      setTab("chat");
-      setModelSelectorOpen(true);
-    },
-    { meta: { name: "Model selector", description: "Open the chat model picker" } },
-  );
-
   return (
-    <Tabs value={tab} onValueChange={(v) => setTab(v as (typeof SIDE_PANEL_TABS)[number])} className="flex h-full flex-col">
+    <Tabs defaultValue="chat" className="flex h-full flex-col">
       <div className="shrink-0 px-2 pt-1">
         <TabsList variant="line" className="h-7 w-full">
           <TabsTrigger value="chat" className="text-[11px]">
@@ -121,10 +96,6 @@ export default function DashboardPage() {
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const hasConsoleErrors = useAtomValue(hasConsoleErrorsAtom);
   const activeExtensions = useAtomValue(activeExtensionsAtom);
-
-  useHotkey("Mod+N", () => setNewSessionDialog(true), {
-    meta: { name: "New session", description: "Create a new browser session" },
-  });
 
   if (isDesktop) {
     if (!hasSessions) {

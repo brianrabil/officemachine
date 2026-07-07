@@ -17,10 +17,8 @@ import {
   newSessionDialogAtom,
 } from "@/store/sessions";
 import { tabsForPortAtom, engineForPortAtom } from "@/store/tabs";
-import { useHotkey } from "@tanstack/react-hotkeys";
 import { ChevronRight, Loader2, Plus, Trash2 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { ShortcutsDialog } from "@/components/shortcuts-dialog";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -398,8 +396,6 @@ export function SessionTree() {
     }
   }, [newSessionName, newSessionBrowser, creating, dispatchCreateSession]);
 
-  useHotkey("Enter", () => handleCreateSubmit(), { target: nameInputRef, ignoreInputs: false });
-
   useEffect(() => {
     if (newSessionOpen && !newSessionName) {
       const existing = new Set(sessions.map((s) => s.session));
@@ -414,7 +410,6 @@ export function SessionTree() {
       <div className="flex shrink-0 items-center px-3 py-2">
         <span className="text-xs text-muted-foreground">Sessions</span>
         <div className="ml-auto flex items-center gap-0.5">
-          <ShortcutsDialog />
           <ThemeToggle />
           {sessions.some((s) => !s.pending) && (
             <button
@@ -485,6 +480,12 @@ export function SessionTree() {
             type="text"
             value={newSessionName}
             onChange={(e) => setNewSessionName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleCreateSubmit();
+              }
+            }}
             placeholder="Session name"
             autoFocus
             disabled={creating}

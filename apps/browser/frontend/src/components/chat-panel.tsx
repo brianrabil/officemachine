@@ -23,7 +23,6 @@ import {
   Check,
   Download,
 } from "lucide-react";
-import { useHotkey } from "@tanstack/react-hotkeys";
 
 type ExtraProps = { node?: unknown };
 type MdImgProps = React.ImgHTMLAttributes<HTMLImageElement> & ExtraProps;
@@ -489,30 +488,22 @@ export function ChatPanel() {
     });
   }, []);
 
-  const submitMessage = useCallback(() => {
-    if ((!input.trim() && pendingImages.length === 0) || isLoading) return;
-    const dt = new DataTransfer();
-    for (const img of pendingImages) dt.items.add(img.file);
-    const files = dt.files.length > 0 ? dt.files : undefined;
-    sendMessage({ text: input, files });
-    setInput("");
-    setPendingImages((prev) => {
-      for (const p of prev) URL.revokeObjectURL(p.preview);
-      return [];
-    });
-  }, [input, isLoading, sendMessage, pendingImages]);
-
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
-      submitMessage();
+      if ((!input.trim() && pendingImages.length === 0) || isLoading) return;
+      const dt = new DataTransfer();
+      for (const img of pendingImages) dt.items.add(img.file);
+      const files = dt.files.length > 0 ? dt.files : undefined;
+      sendMessage({ text: input, files });
+      setInput("");
+      setPendingImages((prev) => {
+        for (const p of prev) URL.revokeObjectURL(p.preview);
+        return [];
+      });
     },
-    [submitMessage],
+    [input, isLoading, sendMessage, pendingImages],
   );
-
-  // Enter submits; Shift+Enter inserts a newline (its own registration, not
-  // matched by this one, since the modifier isn't specified here).
-  useHotkey("Enter", submitMessage, { target: inputRef, ignoreInputs: false });
 
   const lastCompactedId = useRef<string | null>(null);
   useEffect(() => {
@@ -819,6 +810,12 @@ export function ChatPanel() {
               }}
               rows={1}
               placeholder="Ask something..."
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit(e);
+                }
+              }}
               onPaste={(e) => {
                 const items = e.clipboardData?.items;
                 if (!items) return;
