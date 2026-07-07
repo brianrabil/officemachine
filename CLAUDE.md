@@ -18,12 +18,12 @@ despite Turbo defining a `build` task with `dist/**` outputs.
 - `pnpm run lint` / `lint:fix` — oxlint. `pnpm run fmt` / `fmt:check` — oxfmt.
   Turbo also defines `//#quality` (lint + format) and `//#quality:fix`.
 - **Typecheck** (`tsc --noEmit`) is only defined as a package script in
-  `apps/site`, `packages/ui`, `packages/tui` — it's not a Turbo task, so run it
+  `apps/site-legacy`, `packages/ui`, `packages/tui` — it's not a Turbo task, so run it
   directly: `pnpm --filter <pkg> run typecheck`. Other packages have no
   typecheck script; run `tsc --noEmit` in the package dir if needed.
 - **Tests**: only `apps/cli` defines a `test` script (`xo && ava`). No other
   package has one.
-- Per-app dev: `apps/api`, `apps/web`, `apps/site`'s `dev` script runs
+- Per-app dev: `apps/api`, `apps/web`, `apps/site-legacy`'s `dev` script runs
   **portless** (a port-manager wrapper), which launches the real server via
   that package's `dev:app`. Use `dev:app` directly (`nitro dev` / `next dev`)
   to skip portless. `apps/cli` and `apps/terminal` have no portless layer.
@@ -159,16 +159,17 @@ etc.) and `apps/terminal/README.md` for Zig build flags.
 | `sandbox-just-bash` | In-process `just-bash` sandbox provider backing `packages/agent` |
 | `sandbox-container` | Apple `container` CLI sandbox provider — verified against the CLI but not wired into `agent.ts` yet |
 | `tui` | New Ink/TermCN terminal component library (see `apps/cli` note) |
-| `ui` | Shared React 19 + shadcn design system for `apps/web`/`apps/site`, source in `src/` (not `lib/`) |
+| `ui` | Shared React 19 + shadcn design system for `apps/web`/`apps/site-legacy`, source in `src/` (not `lib/`) |
 | `zero-web` | A Zero-lang (`zerolang`) web framework experiment — unrelated to the AI SDK harness stack |
 
-### Nested git repo: `apps/site`
+### Nested git repo: `apps/site-legacy`
 
-`apps/site` contains its own `.git` directory (its own history, likely from an
-external template's `git init`) and is **not** a registered submodule (no
-`.gitmodules`). The parent repo's `git status` shows it as a plain untracked
-directory; running `git add apps/site` from the root would create a broken
-gitlink rather than tracking its files. Treat it as its own repo for now.
+`apps/site-legacy` (renamed from `apps/site`) contains its own `.git`
+directory (its own history, likely from an external template's `git init`)
+and is **not** a registered submodule (no `.gitmodules`). The parent repo's
+`git status` shows it as a plain untracked directory; running `git add
+apps/site-legacy` from the root would create a broken gitlink rather than
+tracking its files. Treat it as its own repo for now.
 
 ### Other conventions
 

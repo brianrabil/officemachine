@@ -10,9 +10,9 @@ export default defineConfig({
   },
   openAPI: {
     meta: {
-      title: "Agent Harness API",
+      title: "Officemachine API",
       version: "1.0.0",
-      description: "API for the Agent Harness",
+      description: "API for Officemachine",
     },
   },
   experimental: {
@@ -22,8 +22,10 @@ export default defineConfig({
   },
   database: {
     default: {
-      connector: "node-sqlite",
-      options: { name: "db" },
+      connector: "libsql",
+      options: {
+        url: env.APP_DATABASE_URL,
+      },
     },
   },
   storage: {

@@ -15,8 +15,9 @@ sandbox provider, session) and the adapter↔sandbox compatibility constraint.
   is pinned to an RC (`2.0.1-rc.22`); verify before bumping.
 - `web` (`@workspace/web`): main Next.js chat app. App Router under `app/`
   (no `src/`). `start` uses port **3001**, not 3000.
-- `site`: marketing Next.js app (no scope). App Router under `app/`. Note
-  `lucide-react` is `^1.23.0` (old major) alongside Next 16 / React 19.
+- `site-legacy` (renamed from `site`): marketing Next.js app (no scope). App
+  Router under `app/`. Note `lucide-react` is `^1.23.0` (old major) alongside
+  Next 16 / React 19.
 - `cli` (`@workspace/cli`): thin wrapper around `@ai-sdk/tui`, importing
   `agent` from `@workspace/agent/agent`. Only script is `cli:dev`.
 - `terminal`: a `zero-native` Zig desktop shell (`app.zon`, manifest
@@ -71,11 +72,11 @@ oxc: `pnpm run lint` / `pnpm run lint:fix` (oxlint), `pnpm run fmt` /
 `pnpm run fmt:check` (oxfmt). Turbo also defines `//#quality` (= lint + format).
 
 Per-app/package scripts: prefer the package script. The npm `dev` script in
-`api`, `site`, `web` runs **portless** (which then launches the real server via
+`api`, `site-legacy`, `web` runs **portless** (which then launches the real server via
 that package's `dev:app`); use `dev:app` to skip portless and hit Next/Nitro
 directly. `terminal` and `cli` have no portless layer.
 
-`typecheck` is defined only on `site`, `ui`, `ai-gateway-sdk`, `skills-sdk`
+`typecheck` is defined only on `site-legacy`, `ui`, `ai-gateway-sdk`, `skills-sdk`
 (all `tsc --noEmit`). Other apps/packages have none — run `tsc --noEmit` in the
 package dir if you need it. No package defines a `test` script.
 

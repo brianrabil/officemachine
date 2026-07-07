@@ -43,5 +43,6 @@ yarn-error.log*
 next-env.d.ts
 
 .zig-cache
+zig-out
 .next
 out
