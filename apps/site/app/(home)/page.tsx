@@ -9,145 +9,117 @@ import { Bento } from "@workspace/ui/components/landing/bento";
 import type { BentoItem } from "@workspace/ui/components/landing/bento";
 import { Footer } from "@workspace/ui/components/landing/footer";
 import type { FooterColumn } from "@workspace/ui/components/landing/footer";
+import { appName, gitConfig } from "../../lib/shared";
 
 const heroTerminalScenes: readonly TerminalScene[] = [
   {
-    name: "image",
+    name: "dev",
     data: [
-      {
-        tone: "input",
-        text: '$ ai image "a sunset" -m "openai/gpt-image-2,bfl/flux-2-pro"',
-      },
+      { tone: "input", text: "$ pnpm run dev" },
       { tone: "plain", text: "" },
-      { tone: "ok", text: "Saved to /Users/you/resp_img_a-1.png (3.2s)" },
-      { tone: "ok", text: "Saved to /Users/you/resp_img_b-2.png (4.1s)" },
+      { tone: "ok", text: "api      → localhost:3000" },
+      { tone: "ok", text: "web      → localhost:3001" },
+      { tone: "ok", text: "terminal → zig build run" },
+      { tone: "plain", text: "" },
+      { tone: "ok", text: "Ready." },
     ],
   },
   {
-    name: "video",
+    name: "resume",
     data: [
-      { tone: "input", text: '$ ai image "a dragon" | ai video "animate this"' },
+      { tone: "input", text: "$ curl -X POST localhost:3000/api/chat/8f2a1c" },
       { tone: "dim", text: "" },
-      { tone: "dim", text: "Generating image with openai/gpt-image-2" },
-      { tone: "ok", text: "Generating video with bytedance/seedance-2.0" },
+      { tone: "dim", text: "no live run for chat 8f2a1c, starting workflow" },
+      { tone: "ok", text: "hook chat:8f2a1c parked, awaiting next message" },
       { tone: "plain", text: "" },
-      { tone: "ok", text: "Saved to /Users/you/resp_video.mp4 (12.4s)" },
+      { tone: "input", text: "# server restarts" },
+      { tone: "input", text: "$ curl -X POST localhost:3000/api/chat/8f2a1c" },
+      { tone: "dim", text: "" },
+      { tone: "ok", text: "resuming workflow run wf_8f2a1c..." },
+      { tone: "ok", text: "streaming response" },
     ],
   },
   {
-    name: "text",
+    name: "block",
     data: [
-      { tone: "input", text: '$ git diff | ai text "explain these changes"' },
+      { tone: "input", text: "$ npx shadcn add officemachine.dev/r/terminal" },
       { tone: "dim", text: "" },
-      { tone: "dim", text: "Generating text with openai/gpt-5.5" },
+      { tone: "ok", text: "installing terminal block" },
+      { tone: "ok", text: "✓ components/terminal.tsx" },
+      { tone: "ok", text: "✓ lib/use-terminal.ts" },
       { tone: "plain", text: "" },
-      { tone: "plain", text: "These changes refactor the auth module:" },
-      { tone: "plain", text: "" },
-      { tone: "plain", text: "  1. Splits session logic into its own file" },
-      { tone: "plain", text: "  2. Adds token expiry validation" },
-      { tone: "plain", text: "  3. Removes deprecated OAuth1 flow" },
-      { tone: "plain", text: "" },
-      { tone: "ok", text: "Saved to /Users/you/resp_text.md" },
-    ],
-  },
-  {
-    name: "audio",
-    data: [
-      { tone: "input", text: '$ ai audio speak "Thanks for trying ai-cli"' },
-      { tone: "dim", text: "" },
-      { tone: "dim", text: "Generating audio with openai/tts-1" },
-      { tone: "plain", text: "" },
-      { tone: "ok", text: "Saved to /Users/you/resp_8j3k2m1n.mp3 (1.8s)" },
-      { tone: "muted", text: "Playing audio  ▁▂▃▅▇▆▄▃▂▁" },
-      { tone: "plain", text: "" },
-      { tone: "input", text: "$ ai audio transcribe meeting.mp3" },
-      { tone: "ok", text: "Saved to /Users/you/resp_transcript.txt" },
+      { tone: "ok", text: "Done." },
     ],
   },
 ];
 
 const spotlights: readonly SpotlightItem[] = [
   {
-    id: "multi-model",
+    id: "harness",
     tone: "slate",
-    title: "Multi-model comparison.",
+    title: "A durable agent runtime.",
     description:
-      "Run the same prompt across multiple models in parallel. Compare outputs side by side to find the best result. Combine with -n to generate multiple per model.",
+      "One durable workflow per chat, parked on a hook between turns instead of one run per request. It resumes across server restarts and redeploys with nothing but a chat id.",
     bullets: [
-      "comma-separated model IDs for parallel generation",
-      "configurable concurrency limits",
-      "per-job timing and structured JSON output",
+      "built on AI SDK v7's HarnessAgent",
+      "sandboxed filesystem, not a bare tool loop",
+      "resumes mid-turn after a restart or redeploy",
     ],
     window: (
       <Panel
         rows={[
-          { tone: "cmd", text: '$ ai image "a sunset" -m "gpt-image-2,flux-2-pro"' },
+          { tone: "cmd", text: "$ curl -X POST localhost:3000/api/chat/8f2a1c" },
           { tone: "dim", text: "" },
-          { tone: "code", text: "Saved to /Users/you/resp_img_a-1.png (3.2s)" },
-          { tone: "code", text: "Saved to /Users/you/resp_img_b-2.png (4.7s)" },
+          { tone: "code", text: "resuming workflow run wf_8f2a1c..." },
+          { tone: "code", text: "hook chat:8f2a1c → new message" },
+          { tone: "code", text: "streaming response" },
         ]}
       />
     ),
   },
   {
-    id: "piping",
+    id: "blocks",
     tone: "ash",
-    title: "Pipe everything.",
+    title: "Installable, not just readable.",
     description:
-      "Pipe text in as context, pipe images into video generation, turn text into speech, or transcribe piped audio. Raw output on stdout when piped, file saves when interactive.",
+      "Every hard problem we solve gets extracted into a shadcn block instead of staying buried in the app. Install it with the same workflow you already use.",
     bullets: [
-      "text stdin becomes prompt context",
-      "binary stdin for image, video, and audio workflows",
-      "chain: ai image | ai video, or pipe text to ai audio speak",
+      "npx shadcn add, same as any other registry",
+      "ships as source in your project, not a package",
+      "starts with the block for streaming a terminal into React",
     ],
     flip: true,
     window: (
       <Panel
         rows={[
-          { tone: "cmd", text: '$ git diff | ai text "explain these changes"' },
+          { tone: "cmd", text: "$ npx shadcn add officemachine.dev/r/terminal" },
           { tone: "dim", text: "" },
-          { tone: "code", text: "These changes refactor the auth module:" },
-          { tone: "code", text: "" },
-          { tone: "code", text: "  1. Splits session logic into its own file" },
-          { tone: "code", text: "  2. Adds token expiry validation" },
-          { tone: "code", text: "  3. Removes deprecated OAuth1 flow" },
-          { tone: "dim", text: "" },
-          { tone: "cmd", text: '$ ai image "a dragon" | ai video "animate this"' },
-          { tone: "code", text: "Saved to /Users/you/resp_video.mp4" },
-          { tone: "dim", text: "" },
-          { tone: "cmd", text: '$ echo "Ship the changelog" | ai audio speak' },
-          { tone: "code", text: "Saved to /Users/you/resp_speech.mp3" },
+          { tone: "code", text: "installing terminal block" },
+          { tone: "code", text: "✓ components/terminal.tsx" },
+          { tone: "code", text: "✓ lib/use-terminal.ts" },
         ]}
       />
     ),
   },
   {
-    id: "models",
+    id: "apps",
     tone: "iron",
-    title: "Hundreds of models, one key.",
+    title: "Three apps, one agent.",
     description:
-      "Access text, image, video, speech, and transcription models from OpenAI, Anthropic, Google, Black Forest Labs, ByteDance, and more through Vercel AI Gateway.",
+      "A web chat, a CLI, and a native terminal shell all drive the same harness underneath. Not three separate implementations pretending to be one product.",
     bullets: [
-      "short names resolve automatically: flux-2-pro, gpt-5.5, tts-1",
-      "live model listing from the gateway",
-      "per-type defaults configurable via env vars",
+      "web chat over the same durable workflow",
+      "a CLI for scripting and piping",
+      "a native terminal app with an in-browser shell, no PTY",
     ],
     window: (
       <Panel
         rows={[
-          { tone: "cmd", text: "$ ai models --type audio" },
+          { tone: "cmd", text: "$ pnpm run dev" },
           { tone: "dim", text: "" },
-          { tone: "dim", text: "Speech models (8):" },
-          { tone: "dim", text: "" },
-          { tone: "dim", text: "  openai" },
-          { tone: "code", text: "    tts-1" },
-          { tone: "code", text: "    gpt-4o-mini-tts" },
-          { tone: "dim", text: "" },
-          { tone: "dim", text: "Transcription models (4):" },
-          { tone: "dim", text: "" },
-          { tone: "dim", text: "  openai" },
-          { tone: "code", text: "    whisper-1" },
-          { tone: "dim", text: "  ...and more" },
+          { tone: "code", text: "api      → localhost:3000" },
+          { tone: "code", text: "web      → localhost:3001" },
+          { tone: "code", text: "terminal → zig build run" },
         ]}
       />
     ),
@@ -157,52 +129,46 @@ const spotlights: readonly SpotlightItem[] = [
 const bentoItems: readonly BentoItem[] = [
   {
     id: "001",
-    title: "Inline preview",
-    body: "Generated images, video frames, and speech previews display directly in your terminal. Visual previews use the Kitty graphics protocol where supported.",
+    title: "Durable by default",
+    body: "Each chat is a durable workflow, not a request handler. It survives server restarts and redeploys, and resumes exactly where it left off.",
   },
   {
     id: "002",
-    title: "Agent-native output",
-    body: "Predictable behavior for scripts and agents. Raw stdout when piped, file saves when interactive. JSON metadata mode for CI pipelines.",
+    title: "Sandboxed execution",
+    body: "The agent reads and writes through a real sandboxed filesystem, not a bare shell tool bolted onto a chat loop.",
   },
   {
     id: "003",
-    title: "Live model discovery",
-    body: "Models are fetched directly from the AI Gateway — no hardcoded lists to maintain. Use short names or full provider/model IDs.",
+    title: "Self-hosted",
+    body: "Runs on your own machine. Local sqlite, local sessions, no vendor deciding what happens to your data.",
   },
   {
     id: "004",
-    title: "Zero config",
-    body: "No config files, no init command, no setup wizard. Set an API key environment variable and start generating. Defaults work out of the box.",
+    title: "Multi-surface",
+    body: "The web chat, the CLI, and the terminal app all drive the same harness. Add a new surface without rebuilding the agent.",
   },
 ];
 
 const footerColumns: readonly FooterColumn[] = [
   {
-    heading: "Usage",
+    heading: "Ecosystem",
     items: [
-      { label: 'ai image "prompt"' },
-      { label: 'ai video "prompt"' },
-      { label: 'ai text "prompt"' },
-      { label: 'ai audio speak "text"' },
-      { label: "ai models" },
+      { label: "Harness", href: "/harness" },
+      { label: "Blocks", href: "/blocks" },
+      { label: "Apps", href: "/apps" },
     ],
   },
   {
-    heading: "Features",
+    heading: "Resources",
     items: [
-      { label: "multi-model comparison" },
-      { label: "stdin/stdout piping" },
-      { label: "inline preview" },
-      { label: "live model discovery" },
+      { label: "Docs", href: "/docs" },
+      { label: "AI SDK", href: "https://ai-sdk.dev" },
     ],
   },
   {
     heading: "Links",
     items: [
-      { label: "GitHub", href: "https://github.com/vercel-labs/ai-cli" },
-      { label: "npm", href: "https://www.npmjs.com/package/ai-cli" },
-      { label: "AI Gateway", href: "https://vercel.com/docs/ai-gateway" },
+      { label: "GitHub", href: `https://github.com/${gitConfig.user}/${gitConfig.repo}` },
     ],
   },
 ];
@@ -215,9 +181,9 @@ export default function HomePage() {
       </div>
       <div className="relative z-10">
         <Hero
-          headline="The ultimate toolkit for local-first AI SDK HarnessAgent."
-          description="A tiny CLI for generating text, images, video, and audio with dead-simple commands. Pipe content in and out. Compare models side by side. See results inline."
-          command="npm install -g ai-cli"
+          headline="The toolkit for local-first ▲ AI SDK."
+          description="A durable, sandboxed agent runtime built on AI SDK v7's HarnessAgent. Includes an installable shadcn block registry, and web, CLI, and terminal apps built on top of it. Open source, self-hosted."
+          command="pnpm run dev"
         >
           <Stage tone="slate">
             <div className="mx-auto w-full max-w-290">
@@ -229,14 +195,14 @@ export default function HomePage() {
         </Hero>
         <Features spotlights={spotlights} />
         <Bento
-          heading="Built for composability."
-          description="Not a chatbot. A generation tool that fits into any workflow — scripts, CI pipelines, agent toolchains, or just your terminal."
-          command='ai text "hello"'
+          heading="The parts, up close."
+          description="Four things about how it's built that matter if you're going to fork it."
+          command="pnpm --filter web run dev:app"
           items={bentoItems}
         />
         <Footer
-          brand="ai-cli"
-          tagline="Generate text, images, video, and audio from your terminal."
+          brand={appName}
+          tagline="A local-first ecosystem for AI SDK — a durable agent runtime, an installable block registry, and the apps built on them."
           poweredByHref="https://vercel.com"
           columns={footerColumns}
         />
