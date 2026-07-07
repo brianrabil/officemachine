@@ -1,6 +1,6 @@
 import { runAgentTUI as _runAgentTUI } from "@workspace/agent-tui/index";
 import { env } from "@workspace/config/env";
-import type { HarnessMessage } from "@workspace/agent/agent";
+import type { HarnessMessage } from "./harness";
 import { createRemoteHarnessAgent } from "./create-remote-agent";
 
 export async function runAgentTUI() {

@@ -11,7 +11,19 @@ import { ModelSelector } from "@/components/model-selector";
 import { shikiTheme } from "@/lib/shiki-theme";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { ArrowUp, Square, Trash2, ChevronRight, ImagePlus, X, Loader, Copy, Check, Download } from "lucide-react";
+import {
+  ArrowUp,
+  Square,
+  Trash2,
+  ChevronRight,
+  ImagePlus,
+  X,
+  Loader,
+  Copy,
+  Check,
+  Download,
+} from "lucide-react";
+import { useHotkey } from "@tanstack/react-hotkeys";
 
 type ExtraProps = { node?: unknown };
 type MdImgProps = React.ImgHTMLAttributes<HTMLImageElement> & ExtraProps;
@@ -23,7 +35,14 @@ type MdCodeProps = React.HTMLAttributes<HTMLElement> & ExtraProps;
 const chatComponents = {
   img: ({ node: _node, src, alt, ...props }: MdImgProps) => {
     if (typeof src === "string" && src.startsWith("data:image/")) {
-      return <img src={src} alt={alt} className="rounded-md border border-border max-w-full my-1" {...props} />;
+      return (
+        <img
+          src={src}
+          alt={alt}
+          className="rounded-md border border-border max-w-full my-1"
+          {...props}
+        />
+      );
     }
     return null;
   },
@@ -52,7 +71,11 @@ const chatComponents = {
   ),
   code: ({ className, children, node: _node, ...props }: MdCodeProps) => {
     if (className?.includes("language-")) {
-      return <code className={className} {...props}>{children}</code>;
+      return (
+        <code className={className} {...props}>
+          {children}
+        </code>
+      );
     }
     return (
       <span
@@ -103,7 +126,9 @@ function parseOutputObject(raw: unknown): Record<string, unknown> | null {
     try {
       const parsed = JSON.parse(raw);
       if (typeof parsed === "object" && parsed !== null) return parsed;
-    } catch { /* not JSON */ }
+    } catch {
+      /* not JSON */
+    }
     return null;
   }
   if (typeof raw === "object" && raw !== null) return raw as Record<string, unknown>;
@@ -138,7 +163,13 @@ function extractImageUrl(raw: unknown): string | null {
   return null;
 }
 
-function ToolCallBlock({ part, onImageLoad }: { part: ToolInvocationPart; onImageLoad?: () => void }) {
+function ToolCallBlock({
+  part,
+  onImageLoad,
+}: {
+  part: ToolInvocationPart;
+  onImageLoad?: () => void;
+}) {
   const [expanded, setExpanded] = useState(false);
   const toolName = part.type.split("-").slice(1).join("-");
   const command = (part.input as { command?: string })?.command ?? toolName;
@@ -158,10 +189,12 @@ function ToolCallBlock({ part, onImageLoad }: { part: ToolInvocationPart; onImag
         )}
         onClick={() => canExpand && setExpanded(!expanded)}
       >
-        <div className={cn(
-          "px-2 py-1 flex items-center gap-2",
-          expanded && hasOutput ? "border-b border-border bg-secondary/30" : "bg-secondary/30",
-        )}>
+        <div
+          className={cn(
+            "px-2 py-1 flex items-center gap-2",
+            expanded && hasOutput ? "border-b border-border bg-secondary/30" : "bg-secondary/30",
+          )}
+        >
           {isRunning ? (
             <Loader className="size-3 shrink-0 animate-spin text-muted-foreground" />
           ) : (
@@ -172,10 +205,14 @@ function ToolCallBlock({ part, onImageLoad }: { part: ToolInvocationPart; onImag
               )}
             />
           )}
-          <span className={cn(
-            "truncate",
-            isRunning ? "text-foreground/80 shimmer-text" : "text-foreground/80",
-          )}>{command}</span>
+          <span
+            className={cn(
+              "truncate",
+              isRunning ? "text-foreground/80 shimmer-text" : "text-foreground/80",
+            )}
+          >
+            {command}
+          </span>
         </div>
         {expanded && hasOutput && (
           <div className="max-h-[300px] overflow-y-auto">
@@ -271,7 +308,15 @@ function useTimeAgo(ts: number | undefined) {
   return `${hrs}h ago`;
 }
 
-function MessageFooter({ model, timestamp, text }: { model: string; timestamp?: number; text: string }) {
+function MessageFooter({
+  model,
+  timestamp,
+  text,
+}: {
+  model: string;
+  timestamp?: number;
+  text: string;
+}) {
   const [copied, setCopied] = useState(false);
   const timeAgo = useTimeAgo(timestamp);
   const shortModel = model.includes("/") ? model.split("/").pop()! : model;
@@ -377,6 +422,7 @@ export function ChatPanel() {
     }
     return total;
   }, [messages]);
+
   const contextWindow = useMemo(() => {
     const match = models.find((m) => m.id === selectedModel);
     return match?.context_window ?? DEFAULT_CONTEXT_WINDOW;
@@ -443,22 +489,30 @@ export function ChatPanel() {
     });
   }, []);
 
+  const submitMessage = useCallback(() => {
+    if ((!input.trim() && pendingImages.length === 0) || isLoading) return;
+    const dt = new DataTransfer();
+    for (const img of pendingImages) dt.items.add(img.file);
+    const files = dt.files.length > 0 ? dt.files : undefined;
+    sendMessage({ text: input, files });
+    setInput("");
+    setPendingImages((prev) => {
+      for (const p of prev) URL.revokeObjectURL(p.preview);
+      return [];
+    });
+  }, [input, isLoading, sendMessage, pendingImages]);
+
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
-      if ((!input.trim() && pendingImages.length === 0) || isLoading) return;
-      const dt = new DataTransfer();
-      for (const img of pendingImages) dt.items.add(img.file);
-      const files = dt.files.length > 0 ? dt.files : undefined;
-      sendMessage({ text: input, files });
-      setInput("");
-      setPendingImages((prev) => {
-        for (const p of prev) URL.revokeObjectURL(p.preview);
-        return [];
-      });
+      submitMessage();
     },
-    [input, isLoading, sendMessage, pendingImages],
+    [submitMessage],
   );
+
+  // Enter submits; Shift+Enter inserts a newline (its own registration, not
+  // matched by this one, since the modifier isn't specified here).
+  useHotkey("Enter", submitMessage, { target: inputRef, ignoreInputs: false });
 
   const lastCompactedId = useRef<string | null>(null);
   useEffect(() => {
@@ -580,7 +634,10 @@ export function ChatPanel() {
           {messages.map((message) => {
             if (message.id.startsWith("compaction-")) {
               return (
-                <div key={message.id} className="flex items-center gap-2 text-[10px] text-muted-foreground/60">
+                <div
+                  key={message.id}
+                  className="flex items-center gap-2 text-[10px] text-muted-foreground/60"
+                >
                   <div className="flex-1 border-t border-border/40" />
                   <span>Earlier messages summarized</span>
                   <div className="flex-1 border-t border-border/40" />
@@ -595,7 +652,9 @@ export function ChatPanel() {
                     {message.parts.some((p) => p.type === "file") && (
                       <div className="flex flex-wrap gap-1.5">
                         {message.parts
-                          .filter((p): p is Extract<typeof p, { type: "file" }> => p.type === "file")
+                          .filter(
+                            (p): p is Extract<typeof p, { type: "file" }> => p.type === "file",
+                          )
                           .map((p, i) => (
                             <img
                               key={i}
@@ -616,7 +675,10 @@ export function ChatPanel() {
                 ) : (
                   <div className="space-y-1.5">
                     {(() => {
-                      type Group = { type: "tools" | "text"; items: (typeof message.parts)[number][] };
+                      type Group = {
+                        type: "tools" | "text";
+                        items: (typeof message.parts)[number][];
+                      };
                       const groups: Group[] = [];
                       for (const part of message.parts) {
                         const groupType = isToolPart(part) ? "tools" : "text";
@@ -634,13 +696,22 @@ export function ChatPanel() {
                             <div key={gi} className="space-y-0.5">
                               {group.items.map((part) => {
                                 if (!isToolPart(part)) return null;
-                                return <ToolCallBlock key={part.toolCallId} part={part} onImageLoad={scrollToBottom} />;
+                                return (
+                                  <ToolCallBlock
+                                    key={part.toolCallId}
+                                    part={part}
+                                    onImageLoad={scrollToBottom}
+                                  />
+                                );
                               })}
                             </div>
                           );
                         }
                         const combinedText = group.items
-                          .filter((p): p is Extract<typeof p, { type: "text" }> => p.type === "text" && !!p.text)
+                          .filter(
+                            (p): p is Extract<typeof p, { type: "text" }> =>
+                              p.type === "text" && !!p.text,
+                          )
                           .map((p) => p.text)
                           .join("");
                         if (!combinedText) return null;
@@ -662,7 +733,10 @@ export function ChatPanel() {
                       const isComplete = !isLast || !isLoading;
                       if (!isComplete) return null;
                       const fullText = message.parts
-                        .filter((p): p is Extract<typeof p, { type: "text" }> => p.type === "text" && !!p.text)
+                        .filter(
+                          (p): p is Extract<typeof p, { type: "text" }> =>
+                            p.type === "text" && !!p.text,
+                        )
                         .map((p) => p.text)
                         .join("");
                       return (
@@ -679,20 +753,21 @@ export function ChatPanel() {
             );
           })}
 
-          {isLoading && messages.length > 0 && (() => {
-            const lastMsg = messages[messages.length - 1];
-            const lastPart = lastMsg?.parts[lastMsg.parts.length - 1];
-            const noVisibleContent = !lastMsg || !hasVisibleContent(lastMsg.parts);
-            const lastIsCompletedTool = lastPart && isToolPart(lastPart) && lastPart.state === "output-available";
-            if (noVisibleContent || lastIsCompletedTool) {
-              return (
-                <span className="text-[11px] text-muted-foreground shimmer-text">
-                  Working...
-                </span>
-              );
-            }
-            return null;
-          })()}
+          {isLoading &&
+            messages.length > 0 &&
+            (() => {
+              const lastMsg = messages[messages.length - 1];
+              const lastPart = lastMsg?.parts[lastMsg.parts.length - 1];
+              const noVisibleContent = !lastMsg || !hasVisibleContent(lastMsg.parts);
+              const lastIsCompletedTool =
+                lastPart && isToolPart(lastPart) && lastPart.state === "output-available";
+              if (noVisibleContent || lastIsCompletedTool) {
+                return (
+                  <span className="text-[11px] text-muted-foreground shimmer-text">Working...</span>
+                );
+              }
+              return null;
+            })()}
 
           {visibleError && (
             <div className="text-[10px] text-destructive/80 bg-destructive/10 rounded-md px-2 py-1.5">
@@ -744,12 +819,6 @@ export function ChatPanel() {
               }}
               rows={1}
               placeholder="Ask something..."
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSubmit(e);
-                }
-              }}
               onPaste={(e) => {
                 const items = e.clipboardData?.items;
                 if (!items) return;
@@ -772,9 +841,7 @@ export function ChatPanel() {
           <div className="flex items-center justify-between px-3 pb-2">
             <ModelSelector value={selectedModel} onChange={setSelectedModel} />
             <div className="flex items-center gap-2">
-              {hasMessages && (
-                <ContextMeter used={estimatedTokens} total={contextWindow} />
-              )}
+              {hasMessages && <ContextMeter used={estimatedTokens} total={contextWindow} />}
               <input
                 ref={fileInputRef}
                 type="file"

@@ -40,6 +40,7 @@ export interface ModelInfo {
 export const chatEnabledAtom = atom(false);
 export const chatModelAtom = atom<string | undefined>(undefined);
 export const availableModelsAtom = atom<ModelInfo[]>([]);
+export const modelSelectorOpenAtom = atom(false);
 
 export function useChatStatusSync() {
   const fetchStatus = useAtomCallback(

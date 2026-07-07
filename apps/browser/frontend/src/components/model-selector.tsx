@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useAtomValue } from "jotai/react";
-import { availableModelsAtom } from "@/store/chat";
+import { useAtom, useAtomValue } from "jotai/react";
+import { availableModelsAtom, modelSelectorOpenAtom } from "@/store/chat";
 import { ChevronDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -32,7 +31,7 @@ interface ModelSelectorProps {
 }
 
 export function ModelSelector({ value, onChange }: ModelSelectorProps) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useAtom(modelSelectorOpenAtom);
   const models = useAtomValue(availableModelsAtom);
 
   const providers = new Map<string, typeof models>();

@@ -31,7 +31,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
-  currentFrameAtom,
+  hasFrameAtom,
+  subscribeToFrames,
   viewportWidthAtom,
   viewportHeightAtom,
   browserConnectedAtom,
@@ -122,7 +123,7 @@ function normalizeUrl(input: string): string {
 }
 
 export function Viewport() {
-  const frame = useAtomValue(currentFrameAtom);
+  const hasFrame = useAtomValue(hasFrameAtom);
   const viewportWidth = useAtomValue(viewportWidthAtom);
   const viewportHeight = useAtomValue(viewportHeightAtom);
   const browserConnected = useAtomValue(browserConnectedAtom);
@@ -150,6 +151,10 @@ export function Viewport() {
   const [activeDevice, setActiveDevice] = useState<string | null>(null);
   const [colorScheme, setColorScheme] = useState<ColorScheme>("no-preference");
   const [offline, setOffline] = useState(false);
+  // Deferred to an effect so the server-rendered and first-client-render
+  // markup agree (window.devicePixelRatio doesn't exist during SSR) —
+  // reading it directly in the render body would cause a hydration mismatch.
+  const [displayDpr, setDisplayDpr] = useState(1);
 
   useEffect(() => {
     if (customDialogOpen) {
@@ -166,6 +171,10 @@ export function Viewport() {
   useEffect(() => {
     setAddressValue(url);
   }, [url]);
+
+  useEffect(() => {
+    setDisplayDpr(window.devicePixelRatio || 1);
+  }, []);
 
   useEffect(() => {
     setActiveDevice(null);
@@ -210,63 +219,83 @@ export function Viewport() {
     }
   }, [addressValue, navigating, runCmd, url]);
 
+  const frameSeqRef = useRef(0);
+
   const drawFrame = useCallback((base64: string) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    const seq = ++frameSeqRef.current;
 
-    const bin = atob(base64);
-    const bytes = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-
-    createImageBitmap(new Blob([bytes], { type: "image/jpeg" })).then((bmp) => {
-      canvas.width = bmp.width;
-      canvas.height = bmp.height;
-      const ctx = canvas.getContext("2d");
-      if (ctx) ctx.drawImage(bmp, 0, 0);
-      bmp.close();
-    });
+    // fetch() on a data: URL decodes base64 via the browser's native decoder
+    // instead of a manual atob + byte-copy loop, which matters a lot once
+    // frames are hundreds of KB at HiDPI resolution.
+    fetch(`data:image/jpeg;base64,${base64}`)
+      .then((res) => res.blob())
+      .then((blob) => createImageBitmap(blob))
+      .then((bmp) => {
+        // createImageBitmap is async and doesn't guarantee ordering; drop
+        // this result if a newer frame has already been dispatched.
+        if (seq !== frameSeqRef.current) {
+          bmp.close();
+          return;
+        }
+        canvas.width = bmp.width;
+        canvas.height = bmp.height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) ctx.drawImage(bmp, 0, 0);
+        bmp.close();
+      });
   }, []);
 
-  useEffect(() => {
-    if (frame) {
-      drawFrame(frame);
-    }
-  }, [frame, drawFrame]);
+  useEffect(() => subscribeToFrames(drawFrame), [drawFrame]);
 
-  const isFit =
-    canvasArea.width > 0 &&
-    viewportWidth === canvasArea.width &&
-    viewportHeight === canvasArea.height;
+  // agent-browser's screencast encodes at exactly the CDP viewport's own
+  // pixel dimensions and ignores deviceScaleFactor entirely, so the only way
+  // to get a sharp capture on a HiDPI display is to request the viewport in
+  // real physical pixels directly (CSS size * devicePixelRatio) rather than
+  // relying on a scale factor the encoder doesn't honor.
+  const toPhysicalPixels = useCallback((cssWidth: number, cssHeight: number) => {
+    const dpr = window.devicePixelRatio || 1;
+    return { w: Math.round(cssWidth * dpr), h: Math.round(cssHeight * dpr) };
+  }, []);
+
+  const isFit = (() => {
+    if (canvasArea.width <= 0) return false;
+    const { w, h } = toPhysicalPixels(canvasArea.width, canvasArea.height);
+    return viewportWidth === w && viewportHeight === h;
+  })();
+
+  const cssViewportWidth = Math.round(viewportWidth / displayDpr);
+  const cssViewportHeight = Math.round(viewportHeight / displayDpr);
 
   const handleFit = useCallback(() => {
     if (canvasArea.width <= 0) return;
-    const w = canvasArea.width;
-    const h = canvasArea.height;
-    if (w > 0 && h > 0) {
-      runCmd("set", "viewport", String(w), String(h), String(window.devicePixelRatio || 1));
-    }
-  }, [canvasArea, runCmd]);
+    const { w, h } = toPhysicalPixels(canvasArea.width, canvasArea.height);
+    runCmd("set", "viewport", String(w), String(h));
+  }, [canvasArea, runCmd, toPhysicalPixels]);
 
   const handlePreset = useCallback(
     (ratio: [number, number]) => {
       if (canvasArea.width <= 0) return;
       const avail = { w: canvasArea.width, h: canvasArea.height };
-      const { w, h } = computePresetSize(ratio, avail.w, avail.h);
-      runCmd("set", "viewport", String(w), String(h), String(window.devicePixelRatio || 1));
+      const preset = computePresetSize(ratio, avail.w, avail.h);
+      const { w, h } = toPhysicalPixels(preset.w, preset.h);
+      runCmd("set", "viewport", String(w), String(h));
     },
-    [canvasArea, runCmd],
+    [canvasArea, runCmd, toPhysicalPixels],
   );
 
   const submitCustomDimensions = useCallback(() => {
     setCustomDialogOpen(false);
     const match = customValue.trim().match(/^(\d+)\s*[x,\s]\s*(\d+)$/);
     if (!match) return;
-    const w = parseInt(match[1], 10);
-    const h = parseInt(match[2], 10);
-    if (w > 0 && h > 0) {
-      runCmd("set", "viewport", String(w), String(h), String(window.devicePixelRatio || 1));
+    const cssW = parseInt(match[1], 10);
+    const cssH = parseInt(match[2], 10);
+    if (cssW > 0 && cssH > 0) {
+      const { w, h } = toPhysicalPixels(cssW, cssH);
+      runCmd("set", "viewport", String(w), String(h));
     }
-  }, [customValue, runCmd]);
+  }, [customValue, runCmd, toPhysicalPixels]);
 
   const handleRecordStart = useCallback(async () => {
     const path = recordPath.trim();
@@ -287,9 +316,10 @@ export function Viewport() {
   const handleResetDevice = useCallback(async () => {
     setActiveDevice(null);
     if (canvasArea.width > 0 && canvasArea.height > 0) {
-      await runCmd("set", "viewport", String(canvasArea.width), String(canvasArea.height), String(window.devicePixelRatio || 1));
+      const { w, h } = toPhysicalPixels(canvasArea.width, canvasArea.height);
+      await runCmd("set", "viewport", String(w), String(h));
     }
-  }, [canvasArea.width, canvasArea.height, runCmd]);
+  }, [canvasArea.width, canvasArea.height, runCmd, toPhysicalPixels]);
 
   useEffect(() => {
     if (activeDevice || navigating) return;
@@ -516,7 +546,7 @@ export function Viewport() {
       )}
 
       <div ref={canvasAreaRef} className="flex min-h-0 flex-1 items-center justify-center">
-        {frame ? (
+        {hasFrame ? (
           <canvas
             ref={canvasRef}
             tabIndex={0}
@@ -624,7 +654,7 @@ export function Viewport() {
                 className="flex h-4 cursor-pointer items-center gap-1 px-1.5 text-[10px] tabular-nums hover:bg-muted"
               >
                 {activeDevice && <Smartphone className="size-2.5" />}
-                {activeDevice ?? `${viewportWidth} x ${viewportHeight}`}
+                {activeDevice ?? (isFit ? "Fit" : `${cssViewportWidth} x ${cssViewportHeight}`)}
               </Badge>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" side="top">
@@ -659,7 +689,7 @@ export function Viewport() {
               )}
               <DropdownMenuItem
                 onClick={() => {
-                  setCustomValue(`${viewportWidth} x ${viewportHeight}`);
+                  setCustomValue(`${cssViewportWidth} x ${cssViewportHeight}`);
                   setCustomDialogOpen(true);
                 }}
                 className="text-xs"

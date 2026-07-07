@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { CornerDownLeft, Loader2, Trash2 } from "lucide-react";
+import { useHotkey } from "@tanstack/react-hotkeys";
 
 type FilterLevel = "all" | "errors" | "warnings" | "info" | "log";
 
@@ -135,15 +136,7 @@ export function ConsolePanel() {
     }
   }, [evalInput, sessionName, evaluating]);
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        handleEval();
-      }
-    },
-    [handleEval],
-  );
+  useHotkey("Enter", handleEval, { target: textareaRef, ignoreInputs: false });
 
   const filters: { key: FilterLevel; label: string; count?: number }[] = [
     { key: "all", label: "All" },
@@ -278,7 +271,6 @@ export function ConsolePanel() {
             e.target.style.height = "auto";
             e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
           }}
-          onKeyDown={handleKeyDown}
           placeholder={sessionName ? "Evaluate JavaScript..." : "No active session"}
           disabled={!sessionName}
           rows={1}

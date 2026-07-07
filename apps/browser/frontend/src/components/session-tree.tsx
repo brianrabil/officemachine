@@ -17,8 +17,10 @@ import {
   newSessionDialogAtom,
 } from "@/store/sessions";
 import { tabsForPortAtom, engineForPortAtom } from "@/store/tabs";
+import { useHotkey } from "@tanstack/react-hotkeys";
 import { ChevronRight, Loader2, Plus, Trash2 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { ShortcutsDialog } from "@/components/shortcuts-dialog";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,17 +32,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Separator } from "@/components/ui/separator";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -87,15 +79,7 @@ function BrandLogo({ name, logos }: { name: string; logos: Record<string, string
       </span>
     );
   }
-  return (
-    <img
-      src={src}
-      alt={name}
-      width={16}
-      height={16}
-      className="size-4 shrink-0"
-    />
-  );
+  return <img src={src} alt={name} width={16} height={16} className="size-4 shrink-0" />;
 }
 
 function EngineLogo({ engine }: { engine: string }) {
@@ -119,7 +103,11 @@ function getFaviconUrl(url: string): string | null {
 function TabFavicon({ url }: { url: string }) {
   const src = getFaviconUrl(url);
   if (!src) {
-    return <span className="flex size-4 shrink-0 items-center justify-center rounded-sm bg-muted text-[8px] text-muted-foreground">&#9679;</span>;
+    return (
+      <span className="flex size-4 shrink-0 items-center justify-center rounded-sm bg-muted text-[8px] text-muted-foreground">
+        &#9679;
+      </span>
+    );
   }
   const handleError = (e: SyntheticEvent<HTMLImageElement>) => {
     (e.target as HTMLImageElement).style.display = "none";
@@ -136,7 +124,21 @@ function TabFavicon({ url }: { url: string }) {
   );
 }
 
-function TabNode({ tab, isViewed, isSessionActive, onClose, onSwitch, onSelectSession }: { tab: TabInfo; isViewed: boolean; isSessionActive: boolean; onClose: () => void; onSwitch: () => void; onSelectSession: () => void }) {
+function TabNode({
+  tab,
+  isViewed,
+  isSessionActive,
+  onClose,
+  onSwitch,
+  onSelectSession,
+}: {
+  tab: TabInfo;
+  isViewed: boolean;
+  isSessionActive: boolean;
+  onClose: () => void;
+  onSwitch: () => void;
+  onSelectSession: () => void;
+}) {
   const handleClick = () => {
     if (!isSessionActive) {
       onSelectSession();
@@ -215,12 +217,12 @@ function SessionNode({
           <Loader2 className="size-3 animate-spin" />
         </span>
         <span className="flex flex-1 min-w-0 items-center gap-2 py-1.5 pr-3 pl-1">
-          {(session.provider ?? provider)
-            ? <ProviderLogo provider={session.provider ?? provider} />
-            : <EngineLogo engine={session.engine ?? engine} />}
-          <span className="truncate font-mono font-semibold">
-            {session.session}
-          </span>
+          {(session.provider ?? provider) ? (
+            <ProviderLogo provider={session.provider ?? provider} />
+          ) : (
+            <EngineLogo engine={session.engine ?? engine} />
+          )}
+          <span className="truncate font-mono font-semibold">{session.session}</span>
           <span className="ml-auto text-[10px]">
             {session.closing ? "Closing..." : "Starting..."}
           </span>
@@ -236,25 +238,18 @@ function SessionNode({
           <CollapsibleTrigger
             className={cn(
               "flex w-full items-center text-xs transition-colors",
-              isActive
-                ? "text-foreground"
-                : "text-muted-foreground hover:text-foreground",
+              isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground",
             )}
           >
             <span className="flex size-6 shrink-0 items-center justify-center">
-              <ChevronRight className={cn("size-3 transition-transform", expanded && "rotate-90")} />
+              <ChevronRight
+                className={cn("size-3 transition-transform", expanded && "rotate-90")}
+              />
             </span>
             <span className="flex flex-1 min-w-0 items-center gap-2 py-1.5 pr-3 pl-1 text-left">
-              {provider
-                ? <ProviderLogo provider={provider} />
-                : <EngineLogo engine={engine} />}
-              <span className="truncate font-mono font-semibold">
-                {session.session}
-              </span>
-              <Badge
-                variant="secondary"
-                className="ml-auto h-4 px-1.5 text-[10px] tabular-nums"
-              >
+              {provider ? <ProviderLogo provider={provider} /> : <EngineLogo engine={engine} />}
+              <span className="truncate font-mono font-semibold">{session.session}</span>
+              <Badge variant="secondary" className="ml-auto h-4 px-1.5 text-[10px] tabular-nums">
                 {tabs.length}
               </Badge>
             </span>
@@ -262,7 +257,12 @@ function SessionNode({
         </ContextMenuTrigger>
         <ContextMenuContent>
           <ContextMenuItem onClick={() => setConfirmClose(true)}>Close session</ContextMenuItem>
-          <ContextMenuItem className="text-destructive focus:text-destructive" onClick={() => setConfirmKill(true)}>Kill session</ContextMenuItem>
+          <ContextMenuItem
+            className="text-destructive focus:text-destructive"
+            onClick={() => setConfirmKill(true)}
+          >
+            Kill session
+          </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
 
@@ -272,7 +272,8 @@ function SessionNode({
             <DialogTitle>Close session</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Close <span className="font-mono font-semibold text-foreground">{session.session}</span> and its browser? This action cannot be undone.
+            Close <span className="font-mono font-semibold text-foreground">{session.session}</span>{" "}
+            and its browser? This action cannot be undone.
           </p>
           <DialogFooter>
             <Button variant="ghost" size="sm" onClick={() => setConfirmClose(false)}>
@@ -298,7 +299,9 @@ function SessionNode({
             <DialogTitle>Kill session</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Force-kill <span className="font-mono font-semibold text-foreground">{session.session}</span>? This immediately terminates the process without cleanup.
+            Force-kill{" "}
+            <span className="font-mono font-semibold text-foreground">{session.session}</span>? This
+            immediately terminates the process without cleanup.
           </p>
           <DialogFooter>
             <Button variant="ghost" size="sm" onClick={() => setConfirmKill(false)}>
@@ -369,10 +372,7 @@ export function SessionTree() {
   const [createError, setCreateError] = useState("");
   const nameInputRef = useRef<HTMLInputElement>(null);
 
-  const isExpanded = useCallback(
-    (port: number) => expandedMap[port] ?? true,
-    [expandedMap],
-  );
+  const isExpanded = useCallback((port: number) => expandedMap[port] ?? true, [expandedMap]);
 
   const toggleExpanded = useCallback((port: number) => {
     setExpandedMap((prev) => ({ ...prev, [port]: !(prev[port] ?? true) }));
@@ -398,6 +398,8 @@ export function SessionTree() {
     }
   }, [newSessionName, newSessionBrowser, creating, dispatchCreateSession]);
 
+  useHotkey("Enter", () => handleCreateSubmit(), { target: nameInputRef, ignoreInputs: false });
+
   useEffect(() => {
     if (newSessionOpen && !newSessionName) {
       const existing = new Set(sessions.map((s) => s.session));
@@ -412,6 +414,7 @@ export function SessionTree() {
       <div className="flex shrink-0 items-center px-3 py-2">
         <span className="text-xs text-muted-foreground">Sessions</span>
         <div className="ml-auto flex items-center gap-0.5">
+          <ShortcutsDialog />
           <ThemeToggle />
           {sessions.some((s) => !s.pending) && (
             <button
@@ -439,13 +442,10 @@ export function SessionTree() {
           </button>
         </div>
       </div>
-      <Separator />
       <ScrollArea className="flex-1">
         <div className="w-full py-1">
           {sessions.length === 0 ? (
-            <div className="py-4 text-center text-xs text-muted-foreground">
-              No sessions
-            </div>
+            <div className="py-4 text-center text-xs text-muted-foreground">No sessions</div>
           ) : (
             sessions.map((s) => (
               <SessionNode
@@ -469,10 +469,13 @@ export function SessionTree() {
         </div>
       </ScrollArea>
 
-      <Dialog open={newSessionOpen} onOpenChange={(open) => {
-        setNewSessionOpen(open);
-        if (open) setCreateError("");
-      }}>
+      <Dialog
+        open={newSessionOpen}
+        onOpenChange={(open) => {
+          setNewSessionOpen(open);
+          if (open) setCreateError("");
+        }}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>New session</DialogTitle>
@@ -482,12 +485,6 @@ export function SessionTree() {
             type="text"
             value={newSessionName}
             onChange={(e) => setNewSessionName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                handleCreateSubmit();
-              }
-            }}
             placeholder="Session name"
             autoFocus
             disabled={creating}
@@ -508,9 +505,11 @@ export function SessionTree() {
                   creating && "opacity-50",
                 )}
               >
-                {opt.engine
-                  ? <EngineLogo engine={opt.engine} />
-                  : <ProviderLogo provider={opt.provider!} />}
+                {opt.engine ? (
+                  <EngineLogo engine={opt.engine} />
+                ) : (
+                  <ProviderLogo provider={opt.provider!} />
+                )}
                 {opt.label}
               </button>
             ))}
@@ -547,14 +546,12 @@ export function SessionTree() {
             <DialogTitle>Close all sessions</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            This will close {sessions.filter((s) => !s.pending).length} active {sessions.filter((s) => !s.pending).length === 1 ? "session" : "sessions"} and their browsers. This action cannot be undone.
+            This will close {sessions.filter((s) => !s.pending).length} active{" "}
+            {sessions.filter((s) => !s.pending).length === 1 ? "session" : "sessions"} and their
+            browsers. This action cannot be undone.
           </p>
           <DialogFooter>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setCloseAllOpen(false)}
-            >
+            <Button variant="ghost" size="sm" onClick={() => setCloseAllOpen(false)}>
               Cancel
             </Button>
             <Button

@@ -17,10 +17,21 @@ export function getSessionTabsPath(port: number): string {
   return `/api/session/${port}/tabs`;
 }
 
-/** Build the same-origin WebSocket URL for a session stream. */
+/**
+ * Build the WebSocket URL for a session stream.
+ * Next.js rewrites only proxy plain HTTP, not WebSocket upgrades, so this
+ * targets the daemon origin directly instead of the page's own origin.
+ */
 export function getSessionStreamUrl(port: number): string {
   assertValidPort(port);
   const streamPath = `/api/session/${port}/stream`;
+  const relayUrl = process.env.NEXT_PUBLIC_WS_RELAY_URL;
+  if (relayUrl) {
+    const origin = new URL(relayUrl);
+    const protocol = origin.protocol === "https:" ? "wss:" : "ws:";
+    return `${protocol}//${origin.host}${streamPath}`;
+  }
+
   if (typeof window === "undefined") {
     return streamPath;
   }

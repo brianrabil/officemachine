@@ -1,7 +1,7 @@
 import { DefaultChatTransport } from "ai";
 import type { UIMessageStreamAgent } from "@workspace/agent-tui/index";
-import { agent as localAgentForToolSchemas } from "@workspace/agent/agent";
-import type { HarnessMessage } from "@workspace/agent/agent";
+import { agent as localAgentForToolSchemas } from "./harness";
+import type { HarnessMessage } from "./harness";
 
 /**
  * A `UIMessageStreamAgent` backed by `apps/api`'s chat HTTP endpoints instead

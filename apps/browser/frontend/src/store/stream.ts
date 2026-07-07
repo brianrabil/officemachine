@@ -24,8 +24,23 @@ export const screencastingAtom = atom(false);
 export const recordingAtom = atom(false);
 export const viewportWidthAtom = atom(1280);
 export const viewportHeightAtom = atom(720);
-export const currentFrameAtom = atom<string | null>(null);
+export const hasFrameAtom = atom(false);
 export const streamEventsAtom = atom<ActivityEvent[]>([]);
+
+// ---------------------------------------------------------------------------
+// Frame delivery
+// ---------------------------------------------------------------------------
+// Frames arrive at up to 60/sec. Routing each one through a Jotai atom would
+// force a React re-render per frame; the canvas draw is dispatched directly
+// to subscribers instead, bypassing React entirely for this hot path.
+
+type FrameListener = (base64: string) => void;
+const frameListeners = new Set<FrameListener>();
+
+export function subscribeToFrames(listener: FrameListener): () => void {
+  frameListeners.add(listener);
+  return () => frameListeners.delete(listener);
+}
 export const consoleLogsAtom = atom<ConsoleEntry[]>([]);
 export const streamTabsAtom = atom<TabInfo[]>([]);
 export const streamEngineAtom = atom("");
@@ -80,7 +95,7 @@ export function useStreamSync(port: number) {
   const setRecording = useSetAtom(recordingAtom);
   const setVpWidth = useSetAtom(viewportWidthAtom);
   const setVpHeight = useSetAtom(viewportHeightAtom);
-  const setFrame = useSetAtom(currentFrameAtom);
+  const setHasFrame = useSetAtom(hasFrameAtom);
   const setEvents = useSetAtom(streamEventsAtom);
   const setConsoleLogs = useSetAtom(consoleLogsAtom);
   const setTabs = useSetAtom(streamTabsAtom);
@@ -108,13 +123,13 @@ export function useStreamSync(port: number) {
       setRecording(false);
       setVpWidth(1280);
       setVpHeight(720);
-      setFrame(null);
+      setHasFrame(false);
       setEvents([]);
       setConsoleLogs([]);
       setTabs([]);
       setEngine("");
     }
-  }, [port, setConnected, setBrowserConnected, setScreencasting, setRecording, setVpWidth, setVpHeight, setFrame, setEvents, setConsoleLogs, setTabs, setEngine]);
+  }, [port, setConnected, setBrowserConnected, setScreencasting, setRecording, setVpWidth, setVpHeight, setHasFrame, setEvents, setConsoleLogs, setTabs, setEngine]);
 
   const connect = useCallback(() => {
     if (port <= 0) return;
@@ -150,7 +165,8 @@ export function useStreamSync(port: number) {
 
       switch (msg.type) {
         case "frame":
-          setFrame(msg.data);
+          setHasFrame(true);
+          frameListeners.forEach((listener) => listener(msg.data));
           break;
 
         case "status":
@@ -218,7 +234,7 @@ export function useStreamSync(port: number) {
           break;
       }
     };
-  }, [port, setWsRef, setConnected, setBrowserConnected, setScreencasting, setRecording, setVpWidth, setVpHeight, setFrame, setEvents, setConsoleLogs, setTabs, setEngine, setTabCache, setEngineCache]);
+  }, [port, setWsRef, setConnected, setBrowserConnected, setScreencasting, setRecording, setVpWidth, setVpHeight, setHasFrame, setEvents, setConsoleLogs, setTabs, setEngine, setTabCache, setEngineCache]);
 
   useEffect(() => {
     connect();

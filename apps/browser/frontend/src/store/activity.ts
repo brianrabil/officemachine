@@ -58,13 +58,24 @@ export const restoredEventsAtom = atom<ActivityEvent[]>([]);
 // Derived atoms
 // ---------------------------------------------------------------------------
 
+function activityEventKey(event: ActivityEvent): string | null {
+  return event.type === "command" || event.type === "result" ? `${event.type}-${event.id}` : null;
+}
+
 export const combinedEventsAtom = atom((get) => {
   const persist = get(persistActivityAtom);
   const restored = get(restoredEventsAtom);
   const streamEvents = get(streamEventsAtom);
 
   if (persist && restored.length > 0) {
-    return [...restored, ...streamEvents].slice(-MAX_PERSISTED);
+    // The live stream can replay recent history on reconnect, which would
+    // otherwise duplicate anything already loaded from localStorage.
+    const liveKeys = new Set(streamEvents.map(activityEventKey).filter((key) => key !== null));
+    const dedupedRestored = restored.filter((event) => {
+      const key = activityEventKey(event);
+      return key === null || !liveKeys.has(key);
+    });
+    return [...dedupedRestored, ...streamEvents].slice(-MAX_PERSISTED);
   }
   return streamEvents;
 });
