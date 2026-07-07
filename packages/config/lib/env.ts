@@ -9,8 +9,11 @@ dotenvx.config({ convention: "nextjs" });
 
 export const env = loadConfigSync({
   schema: z.object({
+    APP_NAME: z.string().default("Office Machine"),
+    APP_PREFIX: z.string().default("OM"),
+
     // ─── Storage ─────────────────────────────────────────────────
-    APP_CONFIG_DIR: z.string().default(path.join(os.homedir(), ".zero-harness")),
+    APP_CONFIG_DIR: z.string().default(path.join(os.homedir(), ".officemachine")),
     APP_DATABASE_URL: z.string().default("file:app.db"),
 
     // ─── App URLs ────────────────────────────────────────────────

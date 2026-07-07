@@ -1,9 +1,14 @@
-@import 'tailwindcss';
+@import '@workspace/ui/globals.css';
 @import 'fumadocs-ui/css/neutral.css';
 @import 'fumadocs-ui/css/preset.css';
 
 html {
   scrollbar-gutter: stable;
+  overscroll-behavior: none;
+}
+
+body {
+  overscroll-behavior: none;
 }
 
 html > body[data-scroll-locked] {

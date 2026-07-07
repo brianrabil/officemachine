@@ -10,6 +10,8 @@
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
+    "@workspace/config": "workspace:*",
+    "@workspace/ui": "workspace:*",
     "cnfast": "^0.0.8",
     "fumadocs-core": "16.11.1",
     "fumadocs-mdx": "15.1.0",

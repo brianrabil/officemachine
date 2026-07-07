@@ -9,6 +9,9 @@
     "zod": "^4.4.3",
     "zod-config": "^1.4.0"
   },
+  "devDependencies": {
+    "@types/node": "^20"
+  },
   "exports": {
     "./settings": "./lib/settings.ts",
     "./env": "./lib/env.ts"
