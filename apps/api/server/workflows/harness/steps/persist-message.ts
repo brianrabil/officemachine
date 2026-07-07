@@ -1,5 +1,5 @@
 import { useDatabase } from "nitro/database";
-import type { HarnessMessage } from "@workspace/agent/agent";
+import type { HarnessMessage } from "@workspace/agent/harness";
 
 export async function persistMessage({
   chatId,

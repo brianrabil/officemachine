@@ -6,7 +6,7 @@ import {
   finalizeHarnessWorkflow,
   type HarnessWorkflowInput,
 } from "@ai-sdk/workflow-harness";
-import type { HarnessMessage } from "@workspace/agent/agent";
+import type { HarnessMessage } from "@workspace/agent/harness";
 
 export async function dispatchWorkflow(
   input: Pick<HarnessWorkflowInput, "prompt" | "sessionId"> & { userMessage: HarnessMessage },

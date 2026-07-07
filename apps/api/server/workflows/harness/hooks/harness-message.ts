@@ -1,5 +1,5 @@
 import { defineHook } from "workflow";
-import type { HarnessMessage } from "@workspace/agent/agent";
+import type { HarnessMessage } from "@workspace/agent/harness";
 
 // Deterministic token (chat:<chatId>) so the API route can resume the right
 // in-progress conversation without tracking Vercel's own workflow run id.

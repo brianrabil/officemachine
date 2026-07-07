@@ -6,7 +6,9 @@ import { defineHandler } from "nitro";
 import { env } from "@workspace/config/env";
 
 const files = createFiles({
-  adapter: fs({ root: path.join(env.APP_CONFIG_DIR, "files") }),
+  adapter: fs({
+    root: path.join(env.APP_CONFIG_DIR, "files"),
+  }),
 });
 
 const router = createFilesRouter({

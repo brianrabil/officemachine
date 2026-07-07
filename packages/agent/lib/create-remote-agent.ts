@@ -5,7 +5,7 @@ import type { HarnessMessage } from "./harness";
 
 /**
  * A `UIMessageStreamAgent` backed by `apps/api`'s chat HTTP endpoints instead
- * of an in-process `HarnessAgent`. `@workspace/agent/agent`'s `agent` is
+ * of an in-process `HarnessAgent`. `@workspace/agent/harness`'s `agent` is
  * imported only for `agent.tools` — the tool *schemas* the terminal renderer
  * needs to render tool-call sections correctly. Nothing local is created: no
  * sandbox, no session, no execution.

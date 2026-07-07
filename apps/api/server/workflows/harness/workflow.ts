@@ -4,7 +4,7 @@ import { runSlice } from "./steps/run-slice";
 import { persistMessage } from "./steps/persist-message";
 import { createHarnessWorkflowState } from "@ai-sdk/workflow-harness";
 import type { HarnessV1ResumeSessionState } from "@ai-sdk/harness";
-import type { HarnessMessage } from "@workspace/agent/agent";
+import type { HarnessMessage } from "@workspace/agent/harness";
 
 export async function harnessWorkflow(input: { sessionId: string; message: HarnessMessage }) {
   "use workflow";

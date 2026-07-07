@@ -1,12 +1,12 @@
 import { runHarnessAgentSlice, type HarnessWorkflowState } from "@ai-sdk/workflow-harness";
 import { useDatabase } from "nitro/database";
 import type { UIMessageChunk } from "ai";
-import type { HarnessMessage } from "@workspace/agent/agent";
+import type { HarnessMessage } from "@workspace/agent/harness";
 
 export async function runSlice(state: HarnessWorkflowState): Promise<HarnessWorkflowState> {
   "use step";
 
-  const { agent } = await import("@workspace/agent/agent");
+  const { agent } = await import("@workspace/agent/harness");
   const { getWritable } = await import("workflow");
   const { readUIMessageStream } = await import("ai");
 
@@ -27,11 +27,17 @@ export async function runSlice(state: HarnessWorkflowState): Promise<HarnessWork
     return final;
   })();
 
-  const result = await runHarnessAgentSlice({
-    agent,
-    state,
-    writable: transform.writable,
-  });
+  let result;
+  try {
+    result = await runHarnessAgentSlice({
+      agent,
+      state,
+      writable: transform.writable,
+    });
+  } catch (err) {
+    console.error("[DEBUG runSlice] runHarnessAgentSlice threw:", err);
+    throw err;
+  }
 
   const [, finalMessage] = await Promise.all([forwardPromise, capturePromise]);
 

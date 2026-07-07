@@ -1,4 +1,4 @@
-import type { HarnessMessage } from "@workspace/agent/agent";
+import type { HarnessMessage } from "@workspace/agent/harness";
 import { env } from "@workspace/config/env";
 import { Chat } from "@/components/chat";
 

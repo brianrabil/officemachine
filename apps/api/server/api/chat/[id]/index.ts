@@ -8,7 +8,7 @@ import {
 } from "#server/workflows/harness/hooks/harness-message.ts";
 import { createUIMessageStreamResponse, type UIMessageChunk } from "ai";
 import { useStorage } from "nitro/storage";
-import type { HarnessMessage } from "@workspace/agent/agent";
+import type { HarnessMessage } from "@workspace/agent/harness";
 
 export default defineHandler(async (event) => {
   const { id: chatId } = await getValidatedRouterParams(event, idParamsSchema);

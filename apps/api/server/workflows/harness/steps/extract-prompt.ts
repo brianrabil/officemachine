@@ -1,5 +1,5 @@
 import type { HarnessV1Prompt } from "@ai-sdk/harness";
-import type { HarnessMessage } from "@workspace/agent/agent";
+import type { HarnessMessage } from "@workspace/agent/harness";
 
 export async function extractPrompt(message: HarnessMessage): Promise<HarnessV1Prompt | undefined> {
   "use step";

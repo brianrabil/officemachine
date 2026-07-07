@@ -1,11 +1,11 @@
 import { runHarnessAgentSlice, type HarnessWorkflowState } from "@ai-sdk/workflow-harness";
 import type { UIMessageChunk } from "ai";
-import type { HarnessMessage } from "@workspace/agent/agent";
+import type { HarnessMessage } from "@workspace/agent/harness";
 
 export async function runSlice(state: HarnessWorkflowState): Promise<HarnessWorkflowState> {
   "use step";
 
-  const { agent } = await import("@workspace/agent/agent");
+  const { agent } = await import("@workspace/agent/harness");
   const { getWritable } = await import("workflow");
   const { readUIMessageStream } = await import("ai");
 

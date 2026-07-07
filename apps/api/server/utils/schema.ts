@@ -6,7 +6,7 @@ export const idParamsSchema = z.object({ id: z.string().min(1) });
 
 // ---- Chat ----
 
-// Mirrors @workspace/agent/agent's messageMetadataSchema. Not imported
+// Mirrors @workspace/agent/harness's messageMetadataSchema. Not imported
 // directly — that module also constructs the live harness sandbox at import
 // time, which would run on every route that just needs this tiny shape.
 const harnessMessageMetadataSchema = z.object({
