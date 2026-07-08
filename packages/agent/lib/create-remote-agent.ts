@@ -35,12 +35,18 @@ export function createRemoteHarnessAgent({
 
   return {
     tools: localAgentForToolSchemas.tools,
-    async streamMessages({ messages, abortSignal }) {
+    async streamMessages({
+      messages,
+      abortSignal,
+    }: {
+      messages: HarnessMessage[];
+      abortSignal?: AbortSignal;
+    }) {
       const uiMessageStream = await transport.sendMessages({
         chatId,
         trigger: "submit-message",
         messageId: undefined,
-        messages: messages as HarnessMessage[],
+        messages,
         abortSignal,
       });
 

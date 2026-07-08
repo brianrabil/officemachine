@@ -108,7 +108,7 @@ function TabFavicon({ url }: { url: string }) {
     );
   }
   const handleError = (e: SyntheticEvent<HTMLImageElement>) => {
-    (e.target as HTMLImageElement).style.display = "none";
+    e.currentTarget.style.display = "none";
   };
   return (
     <img

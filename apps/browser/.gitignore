@@ -4,3 +4,4 @@ third_party
 .next
 out
 next-env.d.ts
+.agent-browser-instance

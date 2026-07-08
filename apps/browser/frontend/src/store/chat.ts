@@ -1,6 +1,7 @@
 "use client";
 
 import { atom } from "jotai";
+import { z } from "zod";
 import { useEffect } from "react";
 import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
@@ -37,6 +38,7 @@ export interface ModelInfo {
   context_window?: number;
 }
 
+
 export const chatEnabledAtom = atom(false);
 export const chatModelAtom = atom<string | undefined>(undefined);
 export const availableModelsAtom = atom<ModelInfo[]>([]);
@@ -60,12 +62,19 @@ export function useChatStatusSync() {
         if (resp.ok) {
           const data = await resp.json();
           if (Array.isArray(data?.data)) {
-            const models: ModelInfo[] = data.data.map((m: Record<string, unknown>) => ({
-              id: m.id as string,
-              name: (m.name as string) || undefined,
-              owned_by: (m.owned_by as string) || undefined,
-              context_window: typeof m.context_window === "number" ? m.context_window : undefined,
-            }));
+            const models: ModelInfo[] = data.data
+              .map(
+                (m: unknown) =>
+                  z
+                    .object({
+                      id: z.string(),
+                      name: z.string().optional(),
+                      owned_by: z.string().optional(),
+                      context_window: z.number().optional(),
+                    })
+                    .safeParse(m).data,
+              )
+              .filter((m: ModelInfo | undefined): m is ModelInfo => m !== undefined);
             models.sort((a, b) => a.id.localeCompare(b.id));
             set(availableModelsAtom, models);
           }

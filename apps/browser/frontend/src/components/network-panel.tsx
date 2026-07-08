@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { z } from "zod";
 import { useAtomValue } from "jotai/react";
 import { activeSessionNameAtom } from "@/store/sessions";
 import { execCommand, sessionArgs } from "@/lib/exec";
@@ -352,10 +353,10 @@ export function NetworkPanel() {
 
 function RequestDetail({ detail, url }: { detail: Record<string, unknown>; url: string }) {
   const host = urlHost(url);
-  const headers = detail.headers as Record<string, string> | undefined;
-  const responseHeaders = detail.responseHeaders as Record<string, string> | undefined;
-  const body = detail.body as string | undefined;
-  const postData = detail.postData as string | undefined;
+  const headers = z.record(z.string(), z.string()).safeParse(detail.headers).data;
+  const responseHeaders = z.record(z.string(), z.string()).safeParse(detail.responseHeaders).data;
+  const body = typeof detail.body === "string" ? detail.body : undefined;
+  const postData = typeof detail.postData === "string" ? detail.postData : undefined;
 
   return (
     <>

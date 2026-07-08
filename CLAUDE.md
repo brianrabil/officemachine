@@ -49,15 +49,23 @@ sections below describe the **current** shape.
 
 ### Core: `packages/agent`
 
-`lib/agent.ts` constructs the singleton `agent` (a `HarnessAgent`) at module
-scope: a Pi adapter (`createPi`, model from `@workspace/config/settings`) over
-an in-process `just-bash` sandbox. The sandbox's filesystem is a `MountableFs`
-tree: in-memory base → `/workspace` mounted to `ReadWriteFs({ root:
-process.cwd() })` → `/workspace/.pi-sessions` mounted to
-`env.APP_CONFIG_DIR/sessions` on real disk (so Pi's transcript mirror
-survives even though the rest of the sandbox is in-memory).
-`messageMetadataSchema` and the `HarnessMessage` (`UIMessage`) type are
-exported from here and reused everywhere as `@workspace/agent/agent`'s
+`lib/harness.ts` (not `agent.ts` — renamed) constructs the singleton `agent`
+(a `HarnessAgent`) at module scope: a Pi adapter (`createPi`, model from
+`@workspace/config/settings`) over a real sandbox from
+`@workspace/omni-sandbox`'s `createOmniSandbox` — a local Apple `container`
+sandbox (`@workspace/apple-sandbox`) in dev, `@ai-sdk/sandbox-vercel` when
+deployed on Vercel (auto-detected via `process.env.VERCEL`). `just-bash` was
+the original in-process sandbox backend; it's gone from this path — it
+structurally cannot support bridge-backed harness adapters (no real process
+execution or networking), so it was replaced once the Apple `container`
+sandbox was built out. The Apple backend bind-mounts the real checkout at
+`/workspace`, with `/workspace/.pi-sessions` as a second, nested mount
+pointed at `env.APP_CONFIG_DIR/sessions` on real disk (so Pi's transcript
+mirror lands outside the git-tracked working tree) — and runs a custom image
+(`packages/apple-sandbox/image/Dockerfile`, built locally as
+`officemachine/apple-sandbox:latest`) since the stock `ubuntu:24.04` base has
+no `git`. `messageMetadataSchema` and the `HarnessMessage` (`UIMessage`) type
+are exported from here and reused everywhere as `@workspace/agent/agent`'s
 `HarnessMessage`.
 
 This `agent` singleton — and the real sandbox it constructs at import time —
@@ -156,8 +164,8 @@ etc.) and `apps/terminal/README.md` for Zig build flags.
 | `agent` | Harness core — the `agent` singleton and the remote-TUI runner (above) |
 | `agent-tui` | Vendored `@ai-sdk/tui` fork adding the `UIMessageStreamAgent` shape + `runAgentTUI` |
 | `config` | `.env` (`zod-config` + `dotenvx`) and JSON5 `settings.json5`; explicit subpath exports only (`./env`, `./settings`) — a bare `@workspace/config` import fails |
-| `sandbox-just-bash` | In-process `just-bash` sandbox provider backing `packages/agent` |
-| `sandbox-container` | Apple `container` CLI sandbox provider — verified against the CLI but not wired into `agent.ts` yet |
+| `apple-sandbox` | Apple `container` CLI sandbox provider (renamed from `sandbox-container`) — backs `packages/agent`'s local dev sandbox via `omni-sandbox` |
+| `omni-sandbox` | `createOmniSandbox` — switches between `apple-sandbox` (local) and `@ai-sdk/sandbox-vercel` (deployed), auto-detected via `process.env.VERCEL` |
 | `tui` | New Ink/TermCN terminal component library (see `apps/cli` note) |
 | `ui` | Shared React 19 + shadcn design system for `apps/web`/`apps/site-legacy`, source in `src/` (not `lib/`) |
 | `zero-web` | A Zero-lang (`zerolang`) web framework experiment — unrelated to the AI SDK harness stack |
@@ -174,15 +182,12 @@ tracking its files. Treat it as its own repo for now.
 ### Other conventions
 
 - Two source-layout conventions coexist: `agent`, `agent-tui`, `config`,
-  `sandbox-just-bash`, `sandbox-container` put source in `lib/`; `ui` and
+  `apple-sandbox`, `omni-sandbox` put source in `lib/`; `ui` and
   `tui` put it in `src/`. Each package's `exports` map reflects this — check
   it before assuming an import path.
 - `@workspace/config`'s env load is a hard runtime dependency of
   `@workspace/agent` and of the Nitro boot plugins; if it fails, nothing
   boots.
-- Root `package.json` `overrides` pins `just-bash@^3.0.2` — the
-  `InMemoryFs`/`MountableFs`/`ReadWriteFs` types used throughout come from
-  there.
 - Harness packages (`@ai-sdk/harness*`, `@ai-sdk/sandbox-*`,
   `@ai-sdk/workflow-harness`) are experimental; verify against current docs
   before upgrading.

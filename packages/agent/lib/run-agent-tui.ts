@@ -1,6 +1,7 @@
+import { validateUIMessages } from "ai";
 import { runAgentTUI as _runAgentTUI } from "@workspace/agent-tui/index";
 import { env } from "@workspace/config/env";
-import type { HarnessMessage } from "./harness";
+import { messageMetadataSchema, type HarnessMessage } from "./harness";
 import { createRemoteHarnessAgent } from "./create-remote-agent";
 
 export async function runAgentTUI() {
@@ -13,7 +14,10 @@ export async function runAgentTUI() {
   if (resumeChatId) {
     const res = await fetch(`${baseUrl}/api/chat/${chatId}/messages`);
     if (res.ok) {
-      initialMessages = (await res.json()) as HarnessMessage[];
+      initialMessages = await validateUIMessages<HarnessMessage>({
+        messages: await res.json(),
+        metadataSchema: messageMetadataSchema,
+      });
     } else {
       console.log(`Chat ${chatId} not found — starting fresh under that id.`);
     }

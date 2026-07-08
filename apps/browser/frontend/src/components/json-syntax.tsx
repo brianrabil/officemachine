@@ -2,9 +2,7 @@
 
 import type { ReactNode } from "react";
 
-type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
-
-function renderValue(value: JsonValue, indent: number): ReactNode {
+function renderValue(value: unknown, indent: number): ReactNode {
   if (value === null) {
     return <span className="json-null">null</span>;
   }
@@ -66,5 +64,5 @@ function renderValue(value: JsonValue, indent: number): ReactNode {
 }
 
 export function JsonSyntax({ value }: { value: unknown }) {
-  return <code>{renderValue(value as JsonValue, 0)}</code>;
+  return <code>{renderValue(value, 0)}</code>;
 }

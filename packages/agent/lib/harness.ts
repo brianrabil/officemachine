@@ -1,67 +1,30 @@
 import { HarnessAgent } from "@ai-sdk/harness/agent";
-import { createPi } from "@ai-sdk/harness-pi";
+import { createOpenCode } from "@ai-sdk/harness-opencode";
 import type { InferUITools, UIMessage } from "ai";
 import { env } from "@workspace/config/env";
 import { settings } from "@workspace/config/settings";
 import { z } from "zod";
-import { createJustBashSandbox } from "@workspace/sandbox-just-bash/index";
-import { InMemoryFs, MountableFs, ReadWriteFs } from "just-bash";
-import type { HarnessV1SandboxProvider } from "@ai-sdk/harness";
-import path from "node:path";
-
-export const workspaceDrive = new MountableFs({
-  base: new ReadWriteFs({ root: process.cwd() }),
-  mounts: [
-    {
-      mountPoint: "/.pi-sessions",
-      filesystem: new ReadWriteFs({
-        root: path.join(env.APP_CONFIG_DIR, "sessions"),
-      }),
-    },
-  ],
-});
-
-export const drive = new MountableFs({
-  base: new InMemoryFs(),
-  mounts: [
-    {
-      mountPoint: "/workspace",
-      filesystem: workspaceDrive,
-    },
-  ],
-});
-
-export const sandbox: HarnessV1SandboxProvider = createJustBashSandbox({
-  cwd: "/workspace",
-  fs: drive,
-  defenseInDepth: false,
-  network: {
-    dangerouslyAllowFullInternetAccess: true,
-  },
-});
+import { createAppleContainer } from "@workspace/apple-sandbox/index";
 
 export const agent = new HarnessAgent({
-  id: "zero-harness",
-  harness: createPi({
-    model: `${settings.defaultProvider}/${settings.defaultModel}`,
+  harness: createOpenCode({
+    model: settings.defaultModel,
     auth: {
-      customEnv: env.OPENCODE_API_KEY
-        ? {
-            OPENCODE_API_KEY: env.OPENCODE_API_KEY,
-            OPENCODE_BASE_URL: env.OPENCODE_BASE_URL,
-          }
-        : {},
+      openaiCompatible: {
+        apiKey: env.OPENCODE_API_KEY,
+        baseUrl: env.OPENCODE_BASE_URL,
+      },
     },
   }),
-  sandbox,
+  sandbox: createAppleContainer({
+    image: "officemachine/apple-sandbox:latest",
+    cwd: "/workspace",
+    ssh: true,
+    ports: [4096],
+    mounts: [{ source: process.cwd(), target: "/workspace" }],
+  }),
   sandboxConfig: {
     workDir: "./",
-    async onSession({ session, sessionWorkDir }) {
-      await session.writeTextFile({
-        path: `${sessionWorkDir}/.pi-sessions/.keep`,
-        content: "",
-      });
-    },
   },
 });
 

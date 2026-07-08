@@ -1,0 +1,1 @@
+{"type":"start","operation":"prompt","prompt":"Reply with exactly the word: pong","tools":[],"model":"deepseek-v4-flash","permissionMode":"allow-all","debug":{"enabled":true,"level":"debug"}}

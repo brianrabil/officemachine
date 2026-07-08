@@ -58,7 +58,9 @@ export type UIMessageStreamAgent = {
 function isUIMessageStreamAgent(
   agent: AgentTUIAgent | UIMessageStreamAgent,
 ): agent is UIMessageStreamAgent {
-  return typeof (agent as UIMessageStreamAgent).streamMessages === 'function';
+  return (
+    'streamMessages' in agent && typeof agent.streamMessages === 'function'
+  );
 }
 
 export type AgentTUISessionOptions = {
@@ -280,7 +282,7 @@ export class AgentTUIRunner<
 
     const result = await this.agent.stream({
       prompt: await convertToModelMessages(messages, {
-        tools: this.agent.tools as ToolSet,
+        tools: this.agent.tools,
       }),
       abortSignal: abortController.signal,
       options: undefined,
@@ -289,7 +291,7 @@ export class AgentTUIRunner<
 
     return {
       uiMessageStream: textStreamToUIMessageStream(
-        result.fullStream as AsyncIterable<TextStreamPart<ToolSet>>,
+        result.fullStream,
         generateMessageId,
         messages,
       ),

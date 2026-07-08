@@ -8,7 +8,9 @@ import { useAnimation } from "../../hooks/use-animation";
 
 export type SpinnerType = SpinnerName;
 
-export const spinnerNames = Object.keys(cliSpinners) as SpinnerName[];
+export const spinnerNames = Object.keys(cliSpinners).filter(
+  (name): name is SpinnerName => name in cliSpinners
+);
 
 export interface SpinnerProps {
   type?: SpinnerType;

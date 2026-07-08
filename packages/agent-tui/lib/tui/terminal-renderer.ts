@@ -886,7 +886,7 @@ async function* takeUntil<T>(
 ): AsyncIterable<T> {
   const iterator = source[Symbol.asyncIterator]();
   const stopped = stop.then(
-    () => ({ done: true, value: undefined as T }) satisfies IteratorResult<T>,
+    () => ({ done: true, value: undefined }) satisfies IteratorResult<T>,
   );
 
   while (true) {
@@ -1265,28 +1265,30 @@ function findVisibleBreakPoint(input: string, width: number) {
   return sliceVisible(input, width).length;
 }
 
+// `messageMetadata` on a `UIMessageChunk` is application-defined (`ai`'s
+// `UIMessageChunk<METADATA = unknown, ...>` leaves it as `unknown` unless a
+// caller threads a concrete `UIMessage` type through — this renderer accepts
+// chunks from arbitrary `UIMessageStreamAgent` implementations, so there is
+// no concrete type to thread through). All fields on `MessageMetadataWithStats`
+// are optional, so narrowing to "a non-null object" is a real (not asserted)
+// subtype match.
+
 function extractResponseStatistics(chunk: UIMessageChunk) {
-  const usage =
-    'usage' in chunk ? (chunk.usage as StreamUsage | undefined) : undefined;
-  const metadataUsage =
-    'messageMetadata' in chunk
-      ? (chunk.messageMetadata as MessageMetadataWithStats | undefined)?.usage
-      : undefined;
-  const metadataPerformance =
-    'messageMetadata' in chunk
-      ? (chunk.messageMetadata as MessageMetadataWithStats | undefined)
-          ?.performance
-      : undefined;
+  const usage = 'usage' in chunk ? chunk.usage : undefined;
+  const rawMetadata = 'messageMetadata' in chunk ? chunk.messageMetadata : undefined;
+  const metadata: MessageMetadataWithStats | undefined =
+    typeof rawMetadata === 'object' && rawMetadata !== null ? rawMetadata : undefined;
 
   return {
-    totalTokens: extractTotalTokenCountFromUsage(usage ?? metadataUsage),
-    outputTokens: extractOutputTokenCountFromUsage(usage ?? metadataUsage),
-    outputTokensPerSecond: metadataPerformance?.outputTokensPerSecond,
+    totalTokens: extractTotalTokenCountFromUsage(usage ?? metadata?.usage),
+    outputTokens: extractOutputTokenCountFromUsage(usage ?? metadata?.usage),
+    outputTokensPerSecond: metadata?.performance?.outputTokensPerSecond,
   };
 }
 
 function extractResponseStatisticsFromMetadata(metadata: unknown) {
-  const stats = metadata as MessageMetadataWithStats | undefined;
+  const stats: MessageMetadataWithStats | undefined =
+    typeof metadata === 'object' && metadata !== null ? metadata : undefined;
 
   return {
     totalTokens: extractTotalTokenCountFromUsage(stats?.usage),

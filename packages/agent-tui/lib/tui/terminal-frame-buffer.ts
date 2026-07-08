@@ -36,7 +36,7 @@ export class TerminalFrameBuffer {
     this.#originalWrite = output.write.bind(output);
     this.#useSynchronizedUpdates = options?.useSynchronizedUpdates ?? true;
 
-    output.write = ((
+    output.write = (
       chunk: string | Uint8Array,
       encodingOrCallback?: BufferEncoding | ((error?: Error | null) => void),
       callback?: (error?: Error | null) => void,
@@ -46,7 +46,7 @@ export class TerminalFrameBuffer {
       }
 
       return this.#originalWrite(chunk, encodingOrCallback, callback);
-    }) as TerminalFrameOutput['write'];
+    };
   }
 
   present(frame: string) {

@@ -1,15 +1,17 @@
 import * as React from "react";
 
 type Subscriber = (tick: number) => void;
-const pool = new Map<
-  number,
-  { id: ReturnType<typeof setInterval>; subs: Set<Subscriber>; tick: number }
->();
+type PoolEntry = {
+  id: ReturnType<typeof setInterval> | null;
+  subs: Set<Subscriber>;
+  tick: number;
+};
+const pool = new Map<number, PoolEntry>();
 
 const subscribe = (milliseconds: number, subscriber: Subscriber) => {
   if (!pool.has(milliseconds)) {
-    const entry = {
-      id: null as unknown as ReturnType<typeof setInterval>,
+    const entry: PoolEntry = {
+      id: null,
       subs: new Set<Subscriber>(),
       tick: 0,
     };
@@ -35,7 +37,9 @@ const unsubscribe = (milliseconds: number, subscriber: Subscriber) => {
 
   entry.subs.delete(subscriber);
   if (entry.subs.size === 0) {
-    clearInterval(entry.id);
+    if (entry.id !== null) {
+      clearInterval(entry.id);
+    }
     pool.delete(milliseconds);
   }
 };

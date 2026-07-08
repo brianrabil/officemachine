@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useState, useCallback, useMemo } from "react";
+import { z } from "zod";
 import { useAtomValue } from "jotai/react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
@@ -120,18 +121,29 @@ function truncateOutput(text: string, maxLines = 30): string {
   return lines.slice(0, maxLines).join("\n") + `\n... (${lines.length - maxLines} more lines)`;
 }
 
+function getCompactionMetadata(metadata: unknown) {
+  const result = z
+    .object({
+      compacted: z.boolean().optional().catch(undefined),
+      summary: z.string().optional().catch(undefined),
+      keepLastN: z.number().optional().catch(undefined),
+    })
+    .safeParse(metadata);
+  return result.success ? result.data : undefined;
+}
+
 function parseOutputObject(raw: unknown): Record<string, unknown> | null {
   if (typeof raw === "string") {
     try {
-      const parsed = JSON.parse(raw);
-      if (typeof parsed === "object" && parsed !== null) return parsed;
+      const result = z.record(z.string(), z.unknown()).safeParse(JSON.parse(raw));
+      if (result.success) return result.data;
     } catch {
       /* not JSON */
     }
     return null;
   }
-  if (typeof raw === "object" && raw !== null) return raw as Record<string, unknown>;
-  return null;
+  const result = z.record(z.string(), z.unknown()).safeParse(raw);
+  return result.success ? result.data : null;
 }
 
 function formatOutput(raw: unknown): string | null {
@@ -139,19 +151,25 @@ function formatOutput(raw: unknown): string | null {
     if (!raw.trim()) return null;
     const obj = parseOutputObject(raw);
     if (obj) {
-      if (typeof obj.text === "string" && obj.image) return obj.text as string;
+      if (typeof obj.text === "string" && obj.image) return obj.text;
       const { image: _, ...rest } = obj;
       return JSON.stringify(rest, null, 2);
     }
     return raw;
   }
-  if (typeof raw === "object" && raw !== null) {
-    const r = raw as Record<string, unknown>;
-    if (typeof r.text === "string" && r.image) return r.text as string;
-    const { image: _, ...rest } = r;
+  const result = z.record(z.string(), z.unknown()).safeParse(raw);
+  if (result.success) {
+    const record = result.data;
+    if (typeof record.text === "string" && record.image) return record.text;
+    const { image: _, ...rest } = record;
     return JSON.stringify(rest, null, 2);
   }
   return null;
+}
+
+function getCommand(input: Record<string, unknown> | undefined): string | undefined {
+  const value = input?.command;
+  return typeof value === "string" ? value : undefined;
 }
 
 function extractImageUrl(raw: unknown): string | null {
@@ -171,7 +189,7 @@ function ToolCallBlock({
 }) {
   const [expanded, setExpanded] = useState(false);
   const toolName = part.type.split("-").slice(1).join("-");
-  const command = (part.input as { command?: string })?.command ?? toolName;
+  const command = getCommand(part.input) ?? toolName;
   const isDone = part.state === "output-available";
   const isRunning = !isDone;
   const output = isDone ? formatOutput(part.output) : null;
@@ -214,7 +232,7 @@ function ToolCallBlock({
           </span>
         </div>
         {expanded && hasOutput && (
-          <div className="max-h-[300px] overflow-y-auto">
+          <div className="max-h-75 overflow-y-auto">
             <pre className="px-2 py-1.5 text-foreground/80 whitespace-pre-wrap break-all leading-relaxed">
               {truncateOutput(output)}
             </pre>
@@ -511,9 +529,7 @@ export function ChatPanel() {
     const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
     if (!lastAssistant) return;
     if (lastAssistant.id === lastCompactedId.current) return;
-    const meta = (lastAssistant as any).metadata as
-      | { compacted?: boolean; summary?: string; keepLastN?: number }
-      | undefined;
+    const meta = getCompactionMetadata(lastAssistant.metadata);
     if (!meta?.compacted || typeof meta.keepLastN !== "number") return;
 
     lastCompactedId.current = lastAssistant.id;
@@ -532,7 +548,7 @@ export function ChatPanel() {
     };
 
     const kept = messages.slice(messages.length - keep);
-    setMessages([summaryMsg as any, ...kept]);
+    setMessages([summaryMsg, ...kept]);
   }, [isLoading, messages, setMessages]);
 
   const handleClear = useCallback(() => {
@@ -548,15 +564,15 @@ export function ChatPanel() {
       role: msg.role,
       parts: msg.parts.map((p) => {
         if (p.type === "text") return { type: "text", text: p.text };
-        if (p.type === "file") return { type: "file", filename: (p as any).filename };
+        if (p.type === "file") return { type: "file", filename: p.filename };
         if (isToolPart(p)) {
           const out = typeof p.output === "string" ? p.output : JSON.stringify(p.output);
           const stripped = out?.replace(/"image":"data:[^"]*"/g, '"image":"[stripped]"');
           return {
             type: p.type,
-            toolName: (p as any).toolName,
-            state: (p as any).state,
-            input: (p as any).input,
+            toolName: p.type.split("-").slice(1).join("-"),
+            state: p.state,
+            input: p.input,
             output: stripped,
           };
         }
