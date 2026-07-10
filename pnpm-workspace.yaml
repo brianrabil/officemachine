@@ -13,6 +13,7 @@ allowBuilds:
   node-liblzma: true
   protobufjs: true
   sharp: true
+  unrs-resolver: true
 minimumReleaseAgeExclude:
   - files-sdk@2.1.0
   - "@fumadocs/base-ui@16.11.1"

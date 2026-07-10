@@ -5,7 +5,7 @@
     "./*": "./lib/*.ts"
   },
   "dependencies": {
-    "ai": "^7.0.15"
+    "ai": "^7.0.20"
   },
   "devDependencies": {
     "@types/node": "latest"

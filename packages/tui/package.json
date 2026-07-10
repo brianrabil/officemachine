@@ -7,13 +7,13 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "cli-spinners": "^2.9.2",
-    "ink": "^4.1.0",
-    "react": "^18.2.0"
+    "cli-spinners": "^3.4.0",
+    "ink": "^7.1.0",
+    "react": "^19.2.7"
   },
   "devDependencies": {
-    "@types/react": "^18.0.32",
-    "typescript": "^5.0.3"
+    "@types/react": "^19.2.17",
+    "typescript": "^7.0.2"
   },
   "exports": {
     "./components/*": "./src/components/*.tsx",
