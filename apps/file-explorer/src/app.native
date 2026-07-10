@@ -1,0 +1,117 @@
+<!-- Native SDK canvas view: compact native chrome, stock components, no WebView. -->
+<column>
+  <row gap="8" padding="10" cross="center" window-drag="true">
+    <spacer width="64" />
+    <tabs label="View mode">
+      <button size="sm" selected="{gridView}" on-press="show_grid">Icons</button>
+      <button size="sm" selected="{listView}" on-press="show_list">List</button>
+    </tabs>
+    <spacer grow="1" />
+    <button-group>
+      <button size="sm" icon="chevron-up" label="Up one folder" on-press="go_up" />
+      <button size="sm" icon="refresh-cw" label="Refresh folder" on-press="refresh" />
+    </button-group>
+    <search-field size="sm" width="280" text="{search}" placeholder="Search this folder" label="Search files" on-input="search_edit" />
+  </row>
+
+  <separator />
+
+  <split value="{sidebar_fraction}" on-resize="resize_sidebar" gap="1" grow="1">
+    <panel>
+      <column gap="14" padding="12" min-width="172">
+        <column gap="6">
+          <text>Favorites</text>
+          <list gap="2" label="Favorite locations">
+            <list-item size="sm" icon="folder" selected="{isHome}" on-press="go_home">Home</list-item>
+            <list-item size="sm" icon="folder" selected="{isDesktop}" on-press="go_desktop">Desktop</list-item>
+            <list-item size="sm" icon="file-text" selected="{isDocuments}" on-press="go_documents">Documents</list-item>
+            <list-item size="sm" icon="download" selected="{isDownloads}" on-press="go_downloads">Downloads</list-item>
+            <list-item size="sm" icon="terminal" selected="{isDeveloper}" on-press="go_developer">Developer</list-item>
+          </list>
+        </column>
+
+        <column gap="6">
+          <text>Locations</text>
+          <list label="Locations">
+            <list-item size="sm" icon="folder-open" selected="{isRoot}" on-press="go_root">Macintosh HD</list-item>
+          </list>
+        </column>
+
+        <spacer grow="1" />
+        <switch size="sm" checked="{show_hidden}" on-toggle="toggle_hidden">Show hidden files</switch>
+      </column>
+    </panel>
+
+    <column min-width="520">
+      <column gap="10" padding="18">
+        <row gap="10" cross="center">
+          <text size="heading">{currentFolderName}</text>
+          <badge>{visibleCount} of {entry_count}</badge>
+        </row>
+        <breadcrumb grow="1" label="Current folder">
+          <for each="breadcrumbs" key="id" as="crumb">
+            <button size="sm" on-press="go_path:{crumb.path}">{crumb.label}</button>
+          </for>
+        </breadcrumb>
+      </column>
+
+      <separator />
+
+      <if test="{gridView}">
+        <scroll grow="1">
+          <grid columns="4" gap="20" padding="18" virtualized="true" virtual-item-extent="202" label="Files">
+            <for each="visibleEntries" key="id" as="entry">
+              <column height="182" gap="8" on-press="open_entry:{entry.id}" label="{entry.name}">
+                <card height="124" selected="{entry.selected}">
+                  <column main="center" cross="center">
+                    <icon name="{entry.icon}" width="56" height="56" />
+                  </column>
+                </card>
+                <text>{entry.name}</text>
+                <row gap="8" cross="center">
+                  <text grow="1">{entry.kind}</text>
+                  <text>{entry.size}</text>
+                </row>
+              </column>
+            </for>
+            <else>
+              <card height="166">
+                <column gap="10" padding="24" main="center" cross="center">
+                  <icon name="search" width="32" height="32" />
+                  <text text-alignment="center">{emptyMessage}</text>
+                </column>
+              </card>
+            </else>
+          </grid>
+        </scroll>
+      </if>
+      <else>
+        <scroll grow="1">
+          <table gap="1" label="Files">
+            <table-row gap="12" padding="8">
+              <table-cell grow="1">Name</table-cell>
+              <table-cell width="180">Kind</table-cell>
+              <table-cell width="96" text-alignment="end">Size</table-cell>
+            </table-row>
+            <for each="visibleEntries" key="id" as="entry">
+              <table-row gap="12" padding="8" selected="{entry.selected}">
+                <table-cell grow="1" on-press="open_entry:{entry.id}">{entry.name}</table-cell>
+                <table-cell width="180">{entry.kind}</table-cell>
+                <table-cell width="96" text-alignment="end">{entry.size}</table-cell>
+              </table-row>
+            </for>
+            <else>
+              <table-row gap="12" padding="20">
+                <table-cell grow="1">{emptyMessage}</table-cell>
+                <table-cell width="180"></table-cell>
+                <table-cell width="96"></table-cell>
+              </table-row>
+            </else>
+          </table>
+        </scroll>
+      </else>
+    </column>
+  </split>
+
+  <status-bar>{summary}</status-bar>
+</column>

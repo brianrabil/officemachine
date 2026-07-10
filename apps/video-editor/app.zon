@@ -1,0 +1,40 @@
+.{
+    .id = "dev.native_sdk.video-editor",
+    .name = "video-editor",
+    .display_name = "OfficeMachine Video",
+    .description = "A local-first Remotion video editor.",
+    .version = "0.1.0",
+    .icons = .{"assets/icon.png"},
+    .platforms = .{ "macos", "linux" },
+    .permissions = .{ "dialog", "filesystem" },
+    .capabilities = .{ "webview", "js_bridge", "dialog", "filesystem" },
+    .bridge = .{
+        .commands = .{
+            .{ .name = "video-editor.project.read", .permissions = .{"filesystem"}, .origins = .{ "zero://app", "http://127.0.0.1:5173" } },
+            .{ .name = "video-editor.project.write", .permissions = .{"filesystem"}, .origins = .{ "zero://app", "http://127.0.0.1:5173" } },
+            .{ .name = "video-editor.directory.scan", .permissions = .{"filesystem"}, .origins = .{ "zero://app", "http://127.0.0.1:5173" } },
+        },
+    },
+    .frontend = .{
+        .dist = "frontend/dist",
+        .entry = "index.html",
+        .spa_fallback = true,
+        .dev = .{
+            .url = "http://127.0.0.1:5173/",
+            .command = .{ "pnpm", "--dir", "frontend", "exec", "vite", "--host", "127.0.0.1" },
+            .ready_path = "/",
+            .timeout_ms = 30000,
+        },
+    },
+    .security = .{
+        .navigation = .{
+            .allowed_origins = .{ "zero://app", "http://127.0.0.1:5173" },
+            .external_links = .{ .action = "deny" },
+        },
+    },
+    .web_engine = "system",
+    .cef = .{ .dir = "third_party/cef/macos", .auto_install = false },
+    .windows = .{
+        .{ .label = "main", .title = "OfficeMachine Video", .width = 1440, .height = 900, .restore_state = true },
+    },
+}

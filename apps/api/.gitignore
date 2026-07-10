@@ -8,6 +8,7 @@ dist
 .env.local
 .harness-sessions
 .harness-workspace
+.pi-sessions
 .workflow-data
 *.db
 *.db-shm

@@ -1,0 +1,45 @@
+.{
+    .id = "dev.officemachine.music",
+    .name = "music-player",
+    .display_name = "Music",
+    .description = "A local-first native music library with albums, search, and playback.",
+    .version = "0.1.0",
+    .platforms = .{"macos"},
+    .permissions = .{ "view", "command" },
+    .capabilities = .{ "native_views", "gpu_surfaces" },
+    // The built-in pack the app's tokens resolve (theme.zig states the
+    // same choice through `ThemeOptions.pack` — the app owns its tokens
+    // via `tokens_fn`, so this channel is the manifest's statement of
+    // record, validated by `native check` against the known pack names).
+    .theme = "geist",
+    .shell = .{
+        .windows = .{
+            .{
+                .label = "main",
+                .title = "Music",
+                .width = 1080,
+                .height = 720,
+                // The floor the layout audit sweep proves clean (the
+                // fixed four-column album rack plus header and
+                // now-playing bar): the window stops resizing here
+                // instead of clipping the grid.
+                .min_width = 1056,
+                .min_height = 600,
+                .restore_state = false,
+                .restore_policy = "center_on_primary",
+                .titlebar = "hidden_inset_tall",
+                .views = .{
+                    .{ .label = "music-canvas", .kind = "gpu_surface", .fill = true, .role = "Music library canvas", .accessibility_label = "Music library", .gpu_backend = "metal", .gpu_pixel_format = "bgra8_unorm", .gpu_present_mode = "timer", .gpu_alpha_mode = "opaque", .gpu_color_space = "srgb", .gpu_vsync = true },
+                },
+            },
+        },
+    },
+    .security = .{
+        .navigation = .{
+            .allowed_origins = .{ "zero://app", "zero://inline" },
+            .external_links = .{ .action = "deny" },
+        },
+    },
+    .web_engine = "system",
+    .cef = .{ .dir = "third_party/cef/macos", .auto_install = false },
+}

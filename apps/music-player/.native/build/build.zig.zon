@@ -1,0 +1,8 @@
+.{
+    .name = .music_player,
+    .fingerprint = 0xdc1b99c5a707070,
+    .version = "0.1.0",
+    .minimum_zig_version = "0.16.0",
+    .dependencies = .{ .native_sdk = .{ .path = "../../../../../../.vite-plus/js_runtime/node/24.18.0/lib/node_modules/@native-sdk/cli" } },
+    .paths = .{ "build.zig", "build.zig.zon" },
+}

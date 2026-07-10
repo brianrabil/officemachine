@@ -1,0 +1,236 @@
+@import "@workspace/ui/globals.css";
+@source "./**/*.{ts,tsx}";
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  min-width: 0;
+  min-height: 0;
+  overscroll-behavior: none;
+  user-select: none;
+}
+
+input,
+textarea {
+  -webkit-app-region: no-drag;
+  user-select: text;
+}
+
+button,
+[role="button"] {
+  -webkit-app-region: no-drag;
+}
+
+.stage-frame {
+  position: relative;
+  max-width: 100%;
+  max-height: 100%;
+  overflow: visible;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--background);
+  box-shadow:
+    0 28px 80px color-mix(in oklab, var(--foreground) 18%, transparent),
+    0 0 0 1px var(--border);
+}
+
+.stage-viewport {
+  overscroll-behavior: none;
+  scrollbar-width: none;
+}
+
+.stage-viewport::-webkit-scrollbar {
+  display: none;
+}
+
+.stage-preview {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.stage-target {
+  position: absolute;
+  display: block;
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  appearance: none;
+  background: transparent;
+  font: inherit;
+  line-height: 0;
+  outline: none;
+  touch-action: none;
+}
+
+.stage-target:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.moveable-control-box.editor-moveable {
+  --moveable-color: var(--primary);
+  --bounds-color: var(--destructive);
+}
+
+.moveable-control-box.editor-moveable .moveable-control {
+  border-color: var(--background);
+}
+
+.timeline-scroll {
+  overscroll-behavior: none;
+  scrollbar-color: var(--border) transparent;
+  scrollbar-width: thin;
+}
+
+.timeline-surface {
+  overscroll-behavior: none;
+}
+
+.editor-toolbar {
+  -webkit-app-region: drag;
+}
+
+.project-file-tree {
+  --trees-accent-override: var(--ring);
+  --trees-bg-override: var(--card);
+  --trees-bg-muted-override: var(--muted);
+  --trees-border-color-override: var(--border);
+  --trees-border-radius-override: 6px;
+  --trees-fg-override: var(--foreground);
+  --trees-fg-muted-override: var(--muted-foreground);
+  --trees-focus-ring-color-override: var(--ring);
+  --trees-font-family-override: inherit;
+  --trees-font-size-override: 12px;
+  --trees-item-margin-x-override: 0px;
+  --trees-padding-inline-override: 4px;
+  --trees-scrollbar-thumb-override: var(--border);
+  --trees-selected-bg-override: var(--accent);
+  --trees-selected-fg-override: var(--accent-foreground);
+}
+
+@media (max-height: 700px) {
+  .copilot-empty {
+    justify-content: flex-start;
+  }
+
+  .copilot-empty [data-slot="empty-icon"] {
+    display: none;
+  }
+}
+
+.timeline-ruler {
+  user-select: none;
+}
+
+.timeline-tick {
+  position: absolute;
+  top: 15px;
+  width: 1px;
+  height: 12px;
+  background: color-mix(in oklab, var(--muted-foreground) 35%, transparent);
+}
+
+.timeline-tick-major {
+  top: 9px;
+  height: 18px;
+  background: color-mix(in oklab, var(--muted-foreground) 62%, transparent);
+}
+
+.timeline-tick span {
+  position: absolute;
+  top: -7px;
+  left: 5px;
+  color: var(--muted-foreground);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 9px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.timeline-track-row {
+  background-color: color-mix(in oklab, var(--muted) 14%, transparent);
+}
+
+.timeline-track-row:hover {
+  background-color: color-mix(in oklab, var(--muted) 28%, transparent);
+}
+
+.timeline-clip {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  height: 32px;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+  cursor: grab;
+  touch-action: none;
+}
+
+.timeline-clip:active {
+  cursor: grabbing;
+}
+
+.timeline-clip-selected {
+  z-index: 8;
+  border-color: var(--foreground);
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+.timeline-trim {
+  position: absolute;
+  top: 0;
+  z-index: 2;
+  width: 8px;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  cursor: ew-resize;
+}
+
+.timeline-trim:hover {
+  background: color-mix(in oklab, var(--foreground) 16%, transparent);
+}
+
+.timeline-trim-start {
+  left: 0;
+}
+
+.timeline-trim-end {
+  right: 0;
+}
+
+.timeline-playhead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 35;
+  width: 1px;
+  background: var(--destructive);
+  pointer-events: none;
+}
+
+.timeline-playhead-cap {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 9px;
+  height: 8px;
+  border-radius: 3px 3px 5px 5px;
+  background: var(--destructive);
+  transform: translateX(-50%);
+}

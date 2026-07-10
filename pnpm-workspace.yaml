@@ -1,5 +1,6 @@
 packages:
   - "apps/*"
+  - "apps/video-editor/frontend"
   - "packages/*"
   - "!apps/terminal/frontend"
   - "!apps/browser/frontend"
@@ -18,3 +19,18 @@ minimumReleaseAgeExclude:
   - "@fumadocs/tailwind@0.1.0"
   - fumadocs-core@16.11.1
   - fumadocs-mdx@15.1.0
+  - "@remotion/licensing@4.0.487"
+  - "@remotion/media@4.0.487"
+  - "@remotion/player@4.0.487"
+  - "@remotion/web-renderer@4.0.487"
+  - "remotion@4.0.487"
+  - "@ai-sdk/*"
+  - "@rolldown/*"
+  - "@vercel/*"
+  - "@workflow/*"
+  - ai
+  - experimental-ai-sdk-code-mode
+  - eve
+  - nitro
+  - rolldown
+  - workflow

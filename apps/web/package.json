@@ -13,13 +13,14 @@
     "script": "dev:app"
   },
   "dependencies": {
-    "@workspace/config": "workspace:*",
     "@ai-sdk/react": "^4.0.16",
+    "@ai-sdk/workflow": "^1.0.15",
     "@hugeicons/core-free-icons": "^4.2.2",
     "@hugeicons/react": "^1.1.9",
     "@shadcn/react": "^0.2.0",
     "@thesvg/react": "^3.2.2",
     "@workspace/agent": "workspace:*",
+    "@workspace/config": "workspace:*",
     "@workspace/ui": "workspace:*",
     "ai": "^7.0.15",
     "lucide-react": "^1.23.0",

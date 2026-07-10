@@ -1,9 +1,9 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
+import { WorkflowChatTransport } from "@ai-sdk/workflow";
 import type { HarnessMessage } from "@workspace/agent/harness";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   AlertCircleIcon,
@@ -16,7 +16,7 @@ import {
   TelescopeIcon,
 } from "@hugeicons/core-free-icons";
 import { Alert, AlertAction, AlertDescription, AlertTitle } from "@workspace/ui/components/alert";
-import { Avatar, AvatarFallback, AvatarImage } from "@workspace/ui/components/avatar";
+import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -141,6 +141,30 @@ export function Chat({
   initialMessages,
 }: { id?: string | undefined; initialMessages?: HarnessMessage[] } = {}) {
   const [input, setInput] = useState("");
+  const transport = useMemo(
+    () =>
+      new WorkflowChatTransport<HarnessMessage>({
+        api: "/api/chat",
+        prepareSendMessagesRequest({ messages, id }) {
+          const latest = messages.at(-1);
+          if (!latest || latest.role !== "user") {
+            throw new Error("Expected the latest message to be from the user.");
+          }
+          const prompt = latest.parts
+            .flatMap((part) => (part.type === "text" ? [part.text] : []))
+            .join("\n")
+            .trim();
+          if (!prompt) throw new Error("Prompt cannot be empty.");
+
+          return {
+            api: `/api/chat/${encodeURIComponent(id)}`,
+            headers: { "Content-Type": "application/json" },
+            body: { message: prompt },
+          };
+        },
+      }),
+    [],
+  );
   const { messages, sendMessage, status, error, stop, regenerate } = useChat<HarnessMessage>({
     id,
     messages: initialMessages,
@@ -148,21 +172,7 @@ export function Chat({
     // the message list — noticeable here given each part now runs through
     // the Marker/tool-state switch, not just plain text.
     experimental_throttle: 50,
-    transport: new DefaultChatTransport({
-      api: "/api/chat",
-      // only send the last message to the server — the harness session
-      // owns conversation memory, so replaying full history isn't needed.
-      // The chat id is a path param on this route, not part of the body.
-      prepareSendMessagesRequest({ messages, id }) {
-        return { api: `/api/chat/${id}`, body: { message: messages[messages.length - 1] } };
-      },
-      // The chat's own id (not a workflow run id) is enough to reconnect —
-      // the server looks up which workflow run is currently backing this
-      // chat, so there's nothing to track client-side between requests.
-      prepareReconnectToStreamRequest({ id }) {
-        return { api: `/api/chat/${id}/stream` };
-      },
-    }),
+    transport,
     onError: (error) => {
       console.error("An error occurred:", error);
     },
@@ -220,10 +230,7 @@ export function Chat({
                                     <ProviderIcon className="size-4" />
                                   </AvatarFallback>
                                 ) : (
-                                  <>
-                                    <AvatarImage src="/avatars/03.png" alt="@avatar" />
-                                    <AvatarFallback>R</AvatarFallback>
-                                  </>
+                                  <AvatarFallback>R</AvatarFallback>
                                 )}
                               </Avatar>
                             </MessageAvatar>

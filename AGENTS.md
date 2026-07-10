@@ -86,7 +86,7 @@ package dir if you need it. No package defines a `test` script.
   put source in `lib/`; `ui` puts it in `src/`. Exports maps reflect this.
 - **No build step for packages** despite Turbo's `build` task + `dist/**`
   outputs — packages are consumed as raw `.ts`/`.tsx` via `moduleResolution:
-  bundler` + `allowImportingTsExtensions`. TS configs use
+bundler` + `allowImportingTsExtensions`. TS configs use
   `verbatimModuleSyntax` and `noEmit`.
 - `@workspace/config` is a runtime dependency of `@workspace/agent`; if its env
   load fails, the agent cannot boot. Both ship a committed `.env`.
@@ -137,6 +137,10 @@ history all run client-side via WASM + just-bash.
   call site.
 - Use library primitives directly. Before building behavior from scratch, check
   the repo stack, installed package docs, or local source for the supported API.
+- Let mature libraries own established hard interaction and state problems,
+  especially drag-and-drop, resize and selection geometry, subscriptions, and
+  persistence coordination. Do not replace their edge-case handling with
+  hand-rolled implementations.
 - For unfamiliar or drift-prone libraries, SDKs, tools, or platform features,
   read official docs or local source/examples before changing code.
 - Parse unknown input once at module boundaries with Zod. Do not scatter repeated
@@ -147,6 +151,57 @@ history all run client-side via WASM + just-bash.
 - Fallbacks are only allowed in config.
 - Use shadcn or TermCN registry primitives for UI surfaces when those components
   are the requested UI stack. Do not recreate look-alike controls locally.
+- App frontends must import `@workspace/ui/globals.css` without redefining its
+  theme tokens or adding a local color palette. Compose the repository's
+  Base UI-backed shadcn components directly; do not add Radix primitives.
+- In the video editor canvas, use `react-moveable` for selection, dragging,
+  resizing, bounds, and snapping. Do not hand-roll pointer-capture geometry or
+  resize handles.
+- The video editor's target desktop architecture is a native-rendered `UiApp`
+  shell with a Zig `Model` as the sole authority for saved or undoable editor
+  state. Scene-declared child WebViews driven by `Options.web_panes` host the
+  interaction-heavy Copilot, Remotion canvas, Pierre project tree, and timeline
+  surfaces. Web state may cache an authoritative snapshot and hold transient
+  gesture, playback, scroll, focus, streaming, and object-URL state only. Do not
+  keep Zustand and Zig as competing project stores.
+- Keep the working full-window React workspace as the migration and
+  browser/registry shell until Zig authority and mixed-pane synchronization are
+  proven. Its geometry uses the shared shadcn `ResizablePanelGroup`; Project and
+  Copilot span the full workspace height while Canvas and Timeline split only the
+  center column. In a future native cutout shell, Native SDK layout owns the
+  outer geometry and must not compete with a second web layout owner.
+- Reusable video behavior belongs in `@workspace/video-sdk`, but the desktop's
+  canonical project validation, edit application, history, revisioning, and
+  persistence must run in Zig. TypeScript keeps the shared wire schemas,
+  read-only WebView projection, transient playback helpers, IndexedDB media
+  primitive, Remotion composition, and web render path. Pin the Zig and
+  TypeScript wire contract with shared JSON fixtures instead of maintaining two
+  production reducers.
+- Native video-editor components follow the Native SDK's use/theme/eject/build
+  order. Keep unique chrome inline; extract a markup template only after three
+  real call sites repeat the same subtree, use a slot for caller-owned content,
+  and style through token references rather than raw colors. Use a Zig view
+  function only when the closed markup grammar cannot express the component.
+  Eject only SDK-listed composites, and do not confuse the ejectable activity
+  `timeline` with the editor's NLE timeline. Templates and Zig view functions
+  compose existing widgets; they do not replace missing engine-level input
+  behavior such as a vertical splitter.
+- Video editor panel headers must use quiet professional editor chrome: compact
+  single-line titles and restrained actions. Do not decorate panel headers or
+  the main toolbar with status badges, redundant subtitles, or pill-shaped
+  labels when spacing, borders, or plain text already communicate hierarchy.
+- The video editor project explorer must use `@pierre/trees` from
+  `https://trees.software/docs` directly for the file-tree model, rendering,
+  focus, selection, expansion, and keyboard behavior. Do not substitute a
+  homegrown tree or another headless tree library.
+- Disable browser/WebView overscroll on both the video editor timeline surface
+  and its scroll container with CSS `overscroll-behavior: none`.
+- The video editor is AI-native and must use the existing harness agent in
+  `apps/api` as its only agent runtime. Do not add an agent loop to the Native
+  shell or React frontend. The harness proposes typed, previewable editor
+  operations; the Zig model validates and applies accepted operations as one
+  undoable transaction after checking the document identity and base revision,
+  while the local project remains authoritative.
 - When touching a wrong path, delete or replace it end to end instead of adding
   compatibility exports, aliases, fallback branches, or duplicate
   implementations.
@@ -160,6 +215,14 @@ history all run client-side via WASM + just-bash.
   the same work session.
 - Install and use the library, package, repo, SDK, or docs link the user names.
   Do not replace it with a custom parser, clone, mock, shim, or look-alike.
+- The video editor shell uses the shared shadcn `ResizablePanelGroup` directly:
+  Project is the full-height left rail, Copilot is the full-height right rail,
+  and only the center column splits Canvas over Timeline. Do not reintroduce
+  Dockview or let the timeline span underneath the side rails.
+- Use `lucide-react` for every app-owned video editor icon, including icons
+  passed into shared loading, message-scroller, and toast surfaces. Pierre's
+  internal file-type sprite remains owned by `@pierre/trees`; do not replace
+  the tree library to force a different sprite implementation.
 - No TypeScript casts in application code. Do not write `as string`,
   `response.json() as ...`, `window as ...`, or other assertions to force a
   type. Fix the source contract, use typed APIs, or parse unknown data at the
@@ -190,6 +253,15 @@ history all run client-side via WASM + just-bash.
 - TermCN TUI work should compose installed TermCN registry components directly
   and only patch generated component code when needed to match Ink documented
   behavior.
+- Native SDK native-rendered apps must compose the built-in component catalog
+  directly (for example `breadcrumb`, `button-group`, `list`, `panel`, `card`,
+  `split`, `switch`, and `status-bar`). Let those components own alignment,
+  density, selection, focus, and surface styling instead of approximating them
+  with generic `row`/`column` arrangements.
+- The file explorer must use the Native SDK's stock components with their default
+  styles. Do not pin a theme or override component colors, backgrounds, radii, or
+  visual variants; keep badges restrained, avoid dashboard-style inspector cards,
+  and do not skin a WebView to imitate the native component catalog.
 - Keep Turborepo task logic package-local. Root build/check/dev/test scripts
   should delegate through `turbo run`; interactive TTY entrypoints may call the
   package directly when Turbo drops stdin.

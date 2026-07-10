@@ -1,4 +1,5 @@
 import { start } from "workflow/api";
+import { videoEditorContextSchema } from "@workspace/video-sdk/copilot";
 import { defineHandler } from "nitro";
 import { getValidatedRouterParams, readValidatedBody } from "h3";
 import { harnessWorkflow } from "#server/workflows/harness/workflow.ts";
@@ -8,9 +9,18 @@ import z from "zod";
 
 export default defineHandler(async (event) => {
   const { id } = await getValidatedRouterParams(event, z.object({ id: z.string() }));
-  const { message } = await readValidatedBody(event, z.object({ message: z.string() }));
+  const { message, editorContext } = await readValidatedBody(
+    event,
+    z.object({
+      message: z.string().min(1),
+      editorContext: videoEditorContextSchema.optional(),
+    }),
+  );
+  const prompt = editorContext
+    ? `${message}\n\n<video-editor-context>\n${JSON.stringify(editorContext)}\n</video-editor-context>`
+    : message;
 
-  const run = await start(harnessWorkflow, [{ sessionId: id, prompt: message }]);
+  const run = await start(harnessWorkflow, [{ sessionId: id, prompt }]);
   await appendChatRun(id, { runId: run.runId, prompt: message });
 
   return createUIMessageStreamResponse({
